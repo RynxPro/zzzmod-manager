@@ -12,6 +12,7 @@ import {
   Calendar,
   HardDrive,
 } from "lucide-react";
+import { useToast, ToastContainer } from "../components/Toast";
 
 type ImportState = "idle" | "drag" | "importing";
 
@@ -23,6 +24,7 @@ const ModsPage: React.FC = () => {
   const [sortDir, setSortDir] = React.useState<"asc" | "desc">("asc");
   const [loading, setLoading] = React.useState<boolean>(true);
   const [error, setError] = React.useState<string | null>(null);
+  const { toasts, dismissToast, success, error: showError } = useToast();
 
   const refresh = React.useCallback(async () => {
     try {
@@ -51,8 +53,13 @@ const ModsPage: React.FC = () => {
   };
 
   const handleDelete = async (mod: ModItem) => {
-    await window.electronAPI.mods.remove(mod.id);
-    await refresh();
+    try {
+      await window.electronAPI.mods.remove(mod.id);
+      await refresh();
+      success("Mod deleted", `${mod.name} has been removed from your library`);
+    } catch (e: any) {
+      showError("Delete failed", e?.message || "Failed to delete mod");
+    }
   };
 
   const handleChooseZip = async () => {
@@ -60,8 +67,11 @@ const ModsPage: React.FC = () => {
     if (!file) return;
     setImportState("importing");
     try {
-      await window.electronAPI.mods.importZip(file);
+      const mod = await window.electronAPI.mods.importZip(file);
       await refresh();
+      success("Mod imported successfully", `${mod.name} has been added to your library`);
+    } catch (e: any) {
+      showError("Import failed", e?.message || "Failed to import ZIP file");
     } finally {
       setImportState("idle");
     }
@@ -72,8 +82,11 @@ const ModsPage: React.FC = () => {
     if (!dir) return;
     setImportState("importing");
     try {
-      await window.electronAPI.mods.importFolder(dir);
+      const mod = await window.electronAPI.mods.importFolder(dir);
       await refresh();
+      success("Mod imported successfully", `${mod.name} has been added to your library`);
+    } catch (e: any) {
+      showError("Import failed", e?.message || "Failed to import folder");
     } finally {
       setImportState("idle");
     }
@@ -91,27 +104,53 @@ const ModsPage: React.FC = () => {
   const onDrop: React.DragEventHandler<HTMLDivElement> = async (e) => {
     e.preventDefault();
     setImportState("importing");
+    let successCount = 0;
+    let errorCount = 0;
+    
     try {
       const files = Array.from(e.dataTransfer.files);
       for (const file of files) {
-        if (file.name.toLowerCase().endsWith(".zip")) {
-          await window.electronAPI.mods.importZip(
-            file.path as unknown as string
-          );
-        } else {
-          await window.electronAPI.mods.importFolder(
-            file.path as unknown as string
-          );
+        try {
+          // Use webkitRelativePath or fallback to name for file path
+          const filePath = (file as any).path || file.webkitRelativePath || file.name;
+          
+          if (file.name.toLowerCase().endsWith(".zip")) {
+            await window.electronAPI.mods.importZip(filePath);
+          } else {
+            await window.electronAPI.mods.importFolder(filePath);
+          }
+          successCount++;
+        } catch (e: any) {
+          errorCount++;
+          console.error(`Failed to import ${file.name}:`, e);
         }
       }
+      
       await refresh();
+      
+      // Show appropriate feedback
+      if (successCount > 0 && errorCount === 0) {
+        success(
+          `${successCount} mod${successCount > 1 ? 's' : ''} imported successfully`,
+          "All files were processed successfully"
+        );
+      } else if (successCount > 0 && errorCount > 0) {
+        success(
+          `${successCount} mod${successCount > 1 ? 's' : ''} imported`,
+          `${errorCount} file${errorCount > 1 ? 's' : ''} failed to import`
+        );
+      } else if (errorCount > 0) {
+        showError("Import failed", `Failed to import ${errorCount} file${errorCount > 1 ? 's' : ''}`);
+      }
     } finally {
       setImportState("idle");
     }
   };
 
   return (
-    <div className="p-8 space-y-6">
+    <>
+      <ToastContainer toasts={toasts} onDismiss={dismissToast} />
+      <div className="p-8 space-y-6">
       {/* Header Section */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -500,11 +539,11 @@ const ModsPage: React.FC = () => {
           </motion.div>
         );
       })()}
-    </div>
+      </div>
+    </>
   );
 };
 
-export default ModsPage;
 function formatBytes(bytes: number) {
   const units = ["B", "KB", "MB", "GB", "TB"];
   let value = bytes;
@@ -515,3 +554,5 @@ function formatBytes(bytes: number) {
   }
   return `${value.toFixed(value < 10 && unit > 0 ? 1 : 0)} ${units[unit]}`;
 }
+
+export default ModsPage;
