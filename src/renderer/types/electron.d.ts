@@ -13,6 +13,7 @@ declare global {
     sizeBytes?: number;
     thumbnailPath?: string | null;
     appliedFiles?: string[];
+    hasConflict?: boolean;
   }
 
   interface ModsAPI {

@@ -1,4 +1,6 @@
 import React from "react";
+import { motion } from "framer-motion";
+import { FolderOpen, Save, Trash2, Settings as SettingsIcon } from "lucide-react";
 
 const SettingsPage: React.FC = () => {
   const [gameDir, setGameDir] = React.useState<string>("");
@@ -43,66 +45,103 @@ const SettingsPage: React.FC = () => {
   };
 
   return (
-    <div className="p-6">
-      <h2 className="text-xl font-semibold mb-4">Settings</h2>
-      <div className="rounded-lg border border-neutral-800 p-4 bg-neutral-900/50 space-y-4">
-        <div>
-          <label className="block text-sm text-neutral-400 mb-1">
+    <div className="p-8 space-y-6">
+      {/* Header */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+      >
+        <h1 className="text-3xl font-bold text-gaming-text-primary mb-2">
+          Settings
+        </h1>
+        <p className="text-gaming-text-secondary">
+          Configure your mod manager preferences
+        </p>
+      </motion.div>
+
+      {/* Settings Panel */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, delay: 0.1 }}
+        className="glass-panel rounded-2xl p-6 space-y-6"
+      >
+        {/* Game Directory */}
+        <div className="space-y-3">
+          <label className="flex items-center gap-2 text-sm font-medium text-gaming-text-primary">
+            <SettingsIcon size={16} className="text-gaming-accent-cyan" />
             Game Directory
           </label>
-          <div className="flex gap-2">
+          <div className="flex gap-3">
             <input
               value={gameDir}
               onChange={(e) => setGameDir(e.target.value)}
-              className="flex-1 rounded-md bg-neutral-800 border border-neutral-700 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500"
-              placeholder="/path/to/game"
+              className="flex-1 px-4 py-3 rounded-xl bg-gaming-bg-card/60 border border-gaming-border-accent/30 text-sm font-medium placeholder:text-gaming-text-muted focus:outline-none focus:border-gaming-accent-cyan/50 focus:shadow-glow transition-all duration-300"
+              placeholder="/path/to/zzz/game"
             />
-            <button
+            <motion.button
               onClick={chooseGameDir}
-              className="rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium hover:bg-indigo-500"
+              className="gaming-button-secondary flex items-center gap-2 px-4 py-3"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
             >
+              <FolderOpen size={16} />
               Browse
-            </button>
+            </motion.button>
           </div>
         </div>
 
-        <div>
-          <label className="block text-sm text-neutral-400 mb-1">
+        {/* Mods Directory */}
+        <div className="space-y-3">
+          <label className="flex items-center gap-2 text-sm font-medium text-gaming-text-primary">
+            <SettingsIcon size={16} className="text-gaming-accent-violet" />
             Mods Directory
           </label>
-          <div className="flex gap-2">
+          <div className="flex gap-3">
             <input
               value={modsDir}
               onChange={(e) => setModsDir(e.target.value)}
-              className="flex-1 rounded-md bg-neutral-800 border border-neutral-700 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500"
+              className="flex-1 px-4 py-3 rounded-xl bg-gaming-bg-card/60 border border-gaming-border-accent/30 text-sm font-medium placeholder:text-gaming-text-muted focus:outline-none focus:border-gaming-accent-cyan/50 focus:shadow-glow transition-all duration-300"
               placeholder="/path/to/mods"
             />
-            <button
+            <motion.button
               onClick={chooseModsDir}
-              className="rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium hover:bg-indigo-500"
+              className="gaming-button-secondary flex items-center gap-2 px-4 py-3"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
             >
+              <FolderOpen size={16} />
               Browse
-            </button>
+            </motion.button>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          <button
+        {/* Action Buttons */}
+        <div className="flex items-center gap-3 pt-4 border-t border-gaming-border-accent/30">
+          <motion.button
             onClick={save}
             disabled={saving}
-            className="rounded-md bg-neutral-700 px-3 py-2 text-sm font-medium hover:bg-neutral-600 disabled:opacity-50"
+            className="gaming-button-primary flex items-center gap-2 disabled:opacity-50"
+            whileHover={{ scale: saving ? 1 : 1.02 }}
+            whileTap={{ scale: saving ? 1 : 0.98 }}
           >
-            Save Settings
-          </button>
-          <button
+            <Save size={16} />
+            {saving ? "Saving..." : "Save Settings"}
+          </motion.button>
+          
+          <motion.button
             onClick={clearBackups}
             disabled={clearing}
-            className="rounded-md bg-red-700 px-3 py-2 text-sm font-medium hover:bg-red-600 disabled:opacity-50"
+            className="px-4 py-2.5 rounded-xl bg-gaming-status-conflict/20 hover:bg-gaming-status-conflict/30 text-gaming-status-conflict border border-gaming-status-conflict/30 hover:shadow-glow transition-all duration-200 flex items-center gap-2 disabled:opacity-50"
+            whileHover={{ scale: clearing ? 1 : 1.02 }}
+            whileTap={{ scale: clearing ? 1 : 0.98 }}
           >
-            Clear Backups
-          </button>
+            <Trash2 size={16} />
+            {clearing ? "Clearing..." : "Clear Backups"}
+          </motion.button>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 };

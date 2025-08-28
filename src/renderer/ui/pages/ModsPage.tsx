@@ -1,5 +1,17 @@
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { 
+  Upload, 
+  FolderOpen, 
+  Filter, 
+  ArrowUpDown, 
+  Power, 
+  Trash2, 
+  AlertTriangle,
+  Download,
+  Calendar,
+  HardDrive
+} from "lucide-react";
 
 type ImportState = "idle" | "drag" | "importing";
 
@@ -99,74 +111,205 @@ const ModsPage: React.FC = () => {
   };
 
   return (
-    <div className="p-6">
-      <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
-        <h2 className="text-xl font-semibold">Mods</h2>
-        <div className="flex items-center gap-2 ml-auto">
-          <input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search mods..."
-            className="rounded-md bg-neutral-800 border border-neutral-700 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500 w-56"
-          />
-          <select
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as any)}
-            className="rounded-md bg-neutral-800 border border-neutral-700 px-2 py-2 text-sm"
-            title="Sort by"
+    <div className="p-8 space-y-6">
+      {/* Header Section */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+        className="flex items-center justify-between"
+      >
+        <div>
+          <h1 className="text-3xl font-bold text-gaming-text-primary mb-2">
+            Mod Library
+          </h1>
+          <p className="text-gaming-text-secondary">
+            Manage your ZZZ modifications
+          </p>
+        </div>
+        
+        {/* Import Actions */}
+        <div className="flex gap-3">
+          <motion.button
+            onClick={handleChooseZip}
+            disabled={importState === "importing"}
+            className="gaming-button-primary flex items-center gap-2"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
           >
-            <option value="name">Name</option>
-            <option value="date">Date Added</option>
-            <option value="size">Size</option>
-          </select>
-          <button
+            <Upload size={16} />
+            Import ZIP
+          </motion.button>
+          <motion.button
+            onClick={handleChooseFolder}
+            disabled={importState === "importing"}
+            className="gaming-button-secondary flex items-center gap-2"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <FolderOpen size={16} />
+            Import Folder
+          </motion.button>
+        </div>
+      </motion.div>
+
+      {/* Controls Bar */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, delay: 0.1 }}
+        className="flex items-center justify-between gap-4 p-4 glass-panel rounded-2xl"
+      >
+        {/* Search */}
+        <div className="flex items-center gap-4 flex-1 max-w-md">
+          <div className="relative flex-1">
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search mods..."
+              className="w-full pl-4 pr-4 py-2.5 rounded-xl bg-gaming-bg-card/60 border border-gaming-border-accent/30 text-sm font-medium placeholder:text-gaming-text-muted focus:outline-none focus:border-gaming-accent-cyan/50 focus:shadow-glow transition-all duration-300"
+            />
+          </div>
+        </div>
+
+        {/* Sort Controls */}
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 px-3 py-2 glass-panel rounded-xl">
+            <Filter size={14} className="text-gaming-text-muted" />
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as any)}
+              className="bg-transparent text-sm font-medium focus:outline-none text-gaming-text-primary"
+            >
+              <option value="name">Name</option>
+              <option value="date">Date</option>
+              <option value="size">Size</option>
+            </select>
+          </div>
+          
+          <motion.button
             onClick={() => setSortDir((d) => (d === "asc" ? "desc" : "asc"))}
-            className="rounded-md bg-neutral-700 px-2 py-2 text-sm hover:bg-neutral-600"
+            className="p-2 glass-panel rounded-xl hover:bg-gaming-bg-overlay/50 transition-colors"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
             title="Toggle sort direction"
           >
-            {sortDir === "asc" ? "Asc" : "Desc"}
-          </button>
+            <ArrowUpDown size={14} className="text-gaming-text-muted" />
+          </motion.button>
         </div>
-        <div className="flex gap-2">
-          <button
-            onClick={handleChooseZip}
-            className="rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium hover:bg-indigo-500 disabled:opacity-50"
-            disabled={importState === "importing"}
-          >
-            Import ZIP
-          </button>
-          <button
-            onClick={handleChooseFolder}
-            className="rounded-md bg-neutral-700 px-3 py-2 text-sm font-medium hover:bg-neutral-600 disabled:opacity-50"
-            disabled={importState === "importing"}
-          >
-            Import Folder
-          </button>
-        </div>
-      </div>
+      </motion.div>
 
-      <div
+      {/* Drag & Drop Zone */}
+      <motion.div
         onDragOver={onDragOver}
         onDragLeave={onDragLeave}
         onDrop={onDrop}
-        className={`rounded-lg border p-6 mb-4 transition-colors ${
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, delay: 0.2 }}
+        className={`relative rounded-2xl border-2 border-dashed p-8 transition-all duration-300 ${
           importState === "drag"
-            ? "border-indigo-500 bg-indigo-500/10"
-            : "border-neutral-800 bg-neutral-900/50"
+            ? "border-gaming-accent-cyan/70 bg-gaming-accent-cyan/10 shadow-glow"
+            : "border-gaming-border-accent/30 bg-gaming-bg-card/30 hover:border-gaming-border-accent/50"
         }`}
       >
-        <p className="text-neutral-300 text-sm">
-          Drag & drop mod ZIPs or folders here to import.
-        </p>
-      </div>
-
-      {loading && <p className="text-neutral-400">Loading...</p>}
-      {error && <p className="text-red-400">{error}</p>}
-
-      {!loading && mods.length === 0 && (
-        <div className="rounded-lg border border-neutral-800 p-6 bg-neutral-900/50 text-neutral-400">
-          No mods installed yet.
+        <div className="text-center">
+          <motion.div
+            className={`mx-auto w-16 h-16 rounded-2xl flex items-center justify-center mb-4 transition-colors ${
+              importState === "drag"
+                ? "bg-gaming-accent-cyan/20 text-gaming-accent-cyan"
+                : "bg-gaming-bg-overlay/50 text-gaming-text-muted"
+            }`}
+            animate={{ 
+              scale: importState === "drag" ? [1, 1.1, 1] : 1,
+              rotate: importState === "importing" ? 360 : 0
+            }}
+            transition={{ 
+              scale: { duration: 0.5, repeat: importState === "drag" ? Infinity : 0 },
+              rotate: { duration: 1, repeat: importState === "importing" ? Infinity : 0, ease: "linear" }
+            }}
+          >
+            <Download size={24} />
+          </motion.div>
+          <p className={`text-sm font-medium mb-2 ${
+            importState === "drag" ? "text-gaming-accent-cyan" : "text-gaming-text-secondary"
+          }`}>
+            {importState === "importing" 
+              ? "Importing mods..." 
+              : importState === "drag"
+              ? "Drop files here to import"
+              : "Drag & drop mod ZIPs or folders here"
+            }
+          </p>
+          <p className="text-xs text-gaming-text-muted">
+            Supports .zip files and mod folders
+          </p>
         </div>
+      </motion.div>
+
+      {/* Loading State */}
+      {loading && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="flex items-center justify-center py-16"
+        >
+          <div className="flex items-center gap-3">
+            <motion.div
+              className="w-6 h-6 border-2 border-gaming-accent-cyan/30 border-t-gaming-accent-cyan rounded-full"
+              animate={{ rotate: 360 }}
+              transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+            />
+            <span className="text-gaming-text-secondary font-medium">Loading mods...</span>
+          </div>
+        </motion.div>
+      )}
+
+      {/* Error State */}
+      {error && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="p-4 rounded-2xl bg-gaming-status-conflict/10 border border-gaming-status-conflict/30 flex items-center gap-3"
+        >
+          <AlertTriangle size={20} className="text-gaming-status-conflict" />
+          <span className="text-gaming-status-conflict font-medium">{error}</span>
+        </motion.div>
+      )}
+
+      {/* Empty State */}
+      {!loading && mods.length === 0 && !error && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center py-16"
+        >
+          <div className="w-24 h-24 mx-auto mb-6 rounded-3xl bg-gaming-bg-overlay/50 flex items-center justify-center">
+            <Upload size={32} className="text-gaming-text-muted" />
+          </div>
+          <h3 className="text-xl font-semibold text-gaming-text-primary mb-2">
+            No mods installed yet
+          </h3>
+          <p className="text-gaming-text-secondary mb-6 max-w-md mx-auto">
+            Get started by importing your first mod using the buttons above or drag & drop files here.
+          </p>
+          <div className="flex gap-3 justify-center">
+            <button
+              onClick={handleChooseZip}
+              className="gaming-button-primary flex items-center gap-2"
+            >
+              <Upload size={16} />
+              Import ZIP
+            </button>
+            <button
+              onClick={handleChooseFolder}
+              className="gaming-button-secondary flex items-center gap-2"
+            >
+              <FolderOpen size={16} />
+              Import Folder
+            </button>
+          </div>
+        </motion.div>
       )}
 
       {(() => {
@@ -190,82 +333,156 @@ const ModsPage: React.FC = () => {
           return sortDir === "asc" ? cmp : -cmp;
         });
         return (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.3, delay: 0.3 }}
+            className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6"
+          >
             <AnimatePresence>
-              {sorted.map((mod) => (
+              {sorted.map((mod, index) => (
                 <motion.div
                   layout
                   key={mod.id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.15 }}
-                  className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900/60 p-4 flex flex-col gap-3 shadow-sm hover:shadow-md transition-shadow"
+                  initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -20, scale: 0.95 }}
+                  transition={{ 
+                    duration: 0.3, 
+                    delay: index * 0.05,
+                    type: "spring",
+                    stiffness: 300,
+                    damping: 30
+                  }}
+                  whileHover={{ 
+                    y: -8,
+                    transition: { duration: 0.2 }
+                  }}
+                  className="group relative"
                 >
-                  {mod.thumbnailPath && (
-                    <img
-                      src={`file://${mod.thumbnailPath}`}
-                      alt={mod.name}
-                      className="w-full h-32 object-cover rounded-lg border border-neutral-200 dark:border-neutral-800"
+                  {/* Gaming Card Container */}
+                  <div className="relative rounded-2xl overflow-hidden glass-panel shadow-cardGlow hover:shadow-cardHover transition-all duration-300 h-full flex flex-col">
+                    {/* Card Glow Effect */}
+                    <motion.div
+                      className="absolute inset-0 bg-gradient-to-br from-gaming-accent-cyan/5 via-transparent to-gaming-accent-violet/5 opacity-0 group-hover:opacity-100"
+                      transition={{ duration: 0.3 }}
                     />
-                  )}
-                  <div className="flex items-start justify-between gap-2">
-                    <div>
-                      <div className="font-semibold text-neutral-900 dark:text-neutral-100">
-                        {mod.name}
+                    
+                    {/* Thumbnail Section */}
+                    {mod.thumbnailPath && (
+                      <div className="relative overflow-hidden">
+                        <motion.img
+                          src={`file://${mod.thumbnailPath}`}
+                          alt={mod.name}
+                          className="w-full h-40 object-cover"
+                          whileHover={{ scale: 1.05 }}
+                          transition={{ duration: 0.3 }}
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-gaming-bg-card/80 via-transparent to-transparent" />
+                        
+                        {/* Status Badges Overlay */}
+                        <div className="absolute top-3 right-3 flex gap-2">
+                          {mod.hasConflict && (
+                            <motion.div
+                              initial={{ scale: 0 }}
+                              animate={{ scale: 1 }}
+                              className="px-2 py-1 rounded-lg bg-gaming-status-conflict/90 backdrop-blur-sm border border-gaming-status-conflict/30 animate-pulse-glow"
+                            >
+                              <AlertTriangle size={12} className="text-white" />
+                            </motion.div>
+                          )}
+                          <motion.div
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            className={`px-3 py-1 rounded-lg backdrop-blur-sm border text-xs font-medium ${
+                              mod.enabled
+                                ? "bg-gaming-status-enabled/90 border-gaming-status-enabled/30 text-white"
+                                : "bg-gaming-status-disabled/90 border-gaming-status-disabled/30 text-white"
+                            }`}
+                          >
+                            {mod.enabled ? "ACTIVE" : "INACTIVE"}
+                          </motion.div>
+                        </div>
                       </div>
-                      <div className="text-xs text-neutral-500 dark:text-neutral-400">
-                        v{mod.version} • {mod.author}
+                    )}
+
+                    {/* Content Section */}
+                    <div className="p-5 flex-1 flex flex-col relative z-10">
+                      {/* Header */}
+                      <div className="mb-3">
+                        <h3 className="font-bold text-gaming-text-primary text-lg mb-1 line-clamp-1">
+                          {mod.name}
+                        </h3>
+                        <div className="flex items-center gap-2 text-xs text-gaming-text-muted font-mono">
+                          <span>v{mod.version}</span>
+                          <span>•</span>
+                          <span>{mod.author}</span>
+                        </div>
+                      </div>
+
+                      {/* Description */}
+                      <p className="text-sm text-gaming-text-secondary line-clamp-3 mb-4 flex-1">
+                        {mod.description || "No description available."}
+                      </p>
+
+                      {/* Metadata */}
+                      <div className="flex items-center gap-4 text-xs text-gaming-text-muted mb-4">
+                        <div className="flex items-center gap-1">
+                          <HardDrive size={12} />
+                          <span>
+                            {typeof mod.sizeBytes === "number"
+                              ? formatBytes(mod.sizeBytes)
+                              : "—"}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Calendar size={12} />
+                          <span>
+                            {mod.dateAdded
+                              ? new Date(mod.dateAdded).toLocaleDateString()
+                              : "—"}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Action Buttons */}
+                      <div className="flex gap-2">
+                        <motion.button
+                          onClick={() => handleEnableToggle(mod)}
+                          className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
+                            mod.enabled
+                              ? "bg-gaming-status-disabled/20 hover:bg-gaming-status-disabled/30 text-gaming-text-primary border border-gaming-status-disabled/30"
+                              : "bg-gaming-status-enabled/20 hover:bg-gaming-status-enabled/30 text-gaming-status-enabled border border-gaming-status-enabled/30 hover:shadow-glow"
+                          }`}
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                        >
+                          <Power size={14} />
+                          {mod.enabled ? "Disable" : "Enable"}
+                        </motion.button>
+                        
+                        <motion.button
+                          onClick={() => handleDelete(mod)}
+                          className="p-2.5 rounded-xl bg-gaming-status-conflict/20 hover:bg-gaming-status-conflict/30 text-gaming-status-conflict border border-gaming-status-conflict/30 hover:shadow-glow transition-all duration-200"
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          title="Delete mod"
+                        >
+                          <Trash2 size={14} />
+                        </motion.button>
                       </div>
                     </div>
-                    <span
-                      className={`text-xs px-2 py-1 rounded-md border whitespace-nowrap ${
-                        mod.enabled
-                          ? "border-green-300 dark:border-green-700 bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300"
-                          : "border-neutral-300 dark:border-neutral-700 bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300"
-                      }`}
-                    >
-                      {mod.enabled ? "Enabled" : "Disabled"}
-                    </span>
-                  </div>
-                  <p className="text-sm text-neutral-700 dark:text-neutral-300 line-clamp-3">
-                    {mod.description}
-                  </p>
-                  <div className="text-xs text-neutral-500">
-                    <span>
-                      {typeof mod.sizeBytes === "number"
-                        ? formatBytes(mod.sizeBytes)
-                        : "—"}
-                    </span>
-                    <span className="mx-2">•</span>
-                    <span>
-                      {mod.dateAdded
-                        ? new Date(mod.dateAdded).toLocaleDateString()
-                        : "—"}
-                    </span>
-                  </div>
-                  <div className="flex gap-2 mt-auto">
-                    <button
-                      onClick={() => handleEnableToggle(mod)}
-                      className={`rounded-md px-3 py-2 text-sm font-medium transition-colors ${
-                        mod.enabled
-                          ? "bg-neutral-200 hover:bg-neutral-300 text-neutral-900 dark:bg-neutral-700 dark:hover:bg-neutral-600 dark:text-neutral-50"
-                          : "bg-green-600 hover:bg-green-500 text-white"
-                      }`}
-                    >
-                      {mod.enabled ? "Disable" : "Enable"}
-                    </button>
-                    <button
-                      onClick={() => handleDelete(mod)}
-                      className="rounded-md px-3 py-2 text-sm font-medium bg-red-600 hover:bg-red-500 text-white"
-                    >
-                      Delete
-                    </button>
+
+                    {/* Card Border Glow */}
+                    <motion.div
+                      className="absolute inset-0 rounded-2xl border border-gaming-accent-cyan/20 opacity-0 group-hover:opacity-100 pointer-events-none"
+                      transition={{ duration: 0.3 }}
+                    />
                   </div>
                 </motion.div>
               ))}
             </AnimatePresence>
-          </div>
+          </motion.div>
         );
       })()}
     </div>

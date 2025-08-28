@@ -235,6 +235,7 @@ async function listModsEnriched() {
   const items = await listMods();
   // backfill any missing fields for older entries
   const updated = [];
+  const cfg = await readConfig();
   for (const item of items) {
     const next = { ...item };
     if (next.dateAdded == null) next.dateAdded = Date.now();
@@ -245,13 +246,25 @@ async function listModsEnriched() {
         next.dir,
         await readManifest(next.dir)
       );
+    // compute conflict flag based on applied files ownership
+    try {
+      const filesForMod = Array.isArray(next.appliedFiles)
+        ? next.appliedFiles
+        : [];
+      next.hasConflict = filesForMod.some((target) => {
+        const owners = cfg.appliedFiles?.[target] || [];
+        return owners.length > 1;
+      });
+    } catch {
+      next.hasConflict = false;
+    }
     updated.push(next);
   }
   // persist if any changed
   if (JSON.stringify(items) !== JSON.stringify(updated)) {
-    const cfg = await readConfig();
-    cfg.mods = updated;
-    await writeConfig(cfg);
+    const cfg2 = await readConfig();
+    cfg2.mods = updated;
+    await writeConfig(cfg2);
   }
   return updated;
 }
