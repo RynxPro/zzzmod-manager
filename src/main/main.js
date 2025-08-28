@@ -20,7 +20,7 @@ const isDev = !app.isPackaged;
 function createMainWindow() {
   const preloadPath = path.resolve(__dirname, "preload.js");
   console.log("Preload path:", preloadPath);
-  
+
   const mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
@@ -36,7 +36,7 @@ function createMainWindow() {
     },
   });
 
-  mainWindow.webContents.once('did-finish-load', () => {
+  mainWindow.webContents.once("did-finish-load", () => {
     console.log("Page loaded, manually injecting electronAPI");
     mainWindow.webContents.executeJavaScript(`
       const { ipcRenderer } = require("electron");
@@ -156,11 +156,11 @@ app.whenReady().then(() => {
       title: "Select Mods Folder",
       buttonLabel: "Select Folder",
     });
-    
+
     if (result.canceled || result.filePaths.length === 0) {
       return null;
     }
-    
+
     return result.filePaths[0];
   });
 });

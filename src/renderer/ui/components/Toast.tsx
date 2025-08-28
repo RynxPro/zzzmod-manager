@@ -92,7 +92,7 @@ export const ToastContainer: React.FC<ToastContainerProps> = ({
   onDismiss,
 }) => {
   return (
-    <div className="fixed top-4 right-4 z-50 space-y-3">
+    <div className="fixed top-20 right-4 z-[99999] space-y-3">
       <AnimatePresence>
         {toasts.map((toast) => (
           <ToastComponent

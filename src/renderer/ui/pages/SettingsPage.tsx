@@ -14,12 +14,15 @@ const SettingsPage: React.FC = () => {
   const [clearing, setClearing] = React.useState<boolean>(false);
 
   React.useEffect(() => {
-    console.log("SettingsPage mounted, checking electronAPI:", window.electronAPI);
-    
+    console.log(
+      "SettingsPage mounted, checking electronAPI:",
+      window.electronAPI
+    );
+
     const checkAPI = () => {
       if (window.electronAPI?.settings?.get) {
         console.log("electronAPI is available, loading settings");
-        window.electronAPI.settings.get().then(s => {
+        window.electronAPI.settings.get().then((s) => {
           setGameDir(s.gameDir || "");
           setModsDir(s.modsDir || "");
         });
@@ -28,13 +31,13 @@ const SettingsPage: React.FC = () => {
         setTimeout(checkAPI, 100);
       }
     };
-    
+
     checkAPI();
   }, []);
 
   const chooseGameDir = async () => {
     if (!window.electronAPI?.settings?.chooseGameDir) {
-      console.error('electronAPI not available');
+      console.error("electronAPI not available");
       return;
     }
     const dir = await window.electronAPI.settings.chooseGameDir();
@@ -42,18 +45,21 @@ const SettingsPage: React.FC = () => {
   };
 
   const chooseModsDir = async () => {
-    console.log('Browse button clicked');
-    console.log('window.electronAPI:', window.electronAPI);
-    console.log('selectModsFolder function:', window.electronAPI?.selectModsFolder);
-    
+    console.log("Browse button clicked");
+    console.log("window.electronAPI:", window.electronAPI);
+    console.log(
+      "selectModsFolder function:",
+      window.electronAPI?.selectModsFolder
+    );
+
     if (!window.electronAPI?.selectModsFolder) {
-      console.error('electronAPI.selectModsFolder not available');
+      console.error("electronAPI.selectModsFolder not available");
       return;
     }
-    
+
     try {
       const dir = await window.electronAPI.selectModsFolder();
-      console.log('Selected directory:', dir);
+      console.log("Selected directory:", dir);
       if (dir) {
         setModsDir(dir);
         // Update the settings immediately
@@ -62,7 +68,7 @@ const SettingsPage: React.FC = () => {
         }
       }
     } catch (error) {
-      console.error('Error selecting mods folder:', error);
+      console.error("Error selecting mods folder:", error);
     }
   };
 
