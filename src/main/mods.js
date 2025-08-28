@@ -59,13 +59,16 @@ async function listMods() {
 function getEffectiveModsDir(settings) {
   return settings?.modsDir && settings.modsDir.trim().length > 0
     ? settings.modsDir
-    : path.join(DATA_DIR, "mods");
+    : null; // Return null if no mods directory is configured
 }
 
 async function importFromZip(zipPath) {
   ensureDirs();
   const cfg = await readConfig();
   MODS_DIR = getEffectiveModsDir(cfg.settings);
+  if (!MODS_DIR) {
+    throw new Error("No mods directory configured. Please select a mods folder in Settings.");
+  }
   if (!fs.existsSync(MODS_DIR)) fs.mkdirSync(MODS_DIR, { recursive: true });
   const baseName = path.basename(zipPath, path.extname(zipPath));
   const targetDir = path.join(MODS_DIR, baseName);
@@ -79,6 +82,9 @@ async function importFromFolder(folderPath) {
   ensureDirs();
   const cfg = await readConfig();
   MODS_DIR = getEffectiveModsDir(cfg.settings);
+  if (!MODS_DIR) {
+    throw new Error("No mods directory configured. Please select a mods folder in Settings.");
+  }
   if (!fs.existsSync(MODS_DIR)) fs.mkdirSync(MODS_DIR, { recursive: true });
   const baseName = path.basename(folderPath);
   const targetDir = path.join(MODS_DIR, baseName);
@@ -232,16 +238,25 @@ async function removeDirectory(dirPath) {
 
 export const paths = { APP_DIR, DATA_DIR, MODS_DIR, CONFIG_PATH };
 async function listModsEnriched() {
-  const items = await listMods();
+  const cfg = await readConfig();
+  const modsDir = getEffectiveModsDir(cfg.settings);
+  
+  // If no mods directory is configured, return empty list
+  if (!modsDir) {
+    return [];
+  }
+
+  // Scan the actual mods directory and sync with config
+  const items = await syncModsFromDirectory(modsDir, cfg);
+  
   // backfill any missing fields for older entries
   const updated = [];
-  const cfg = await readConfig();
   for (const item of items) {
     const next = { ...item };
     if (next.dateAdded == null) next.dateAdded = Date.now();
-    if (next.sizeBytes == null)
+    if (next.sizeBytes == null && fs.existsSync(next.dir))
       next.sizeBytes = await computeDirectorySizeBytes(next.dir);
-    if (next.thumbnailPath == null)
+    if (next.thumbnailPath == null && fs.existsSync(next.dir))
       next.thumbnailPath = await findThumbnailPath(
         next.dir,
         await readManifest(next.dir)
@@ -267,6 +282,54 @@ async function listModsEnriched() {
     await writeConfig(cfg2);
   }
   return updated;
+}
+
+async function syncModsFromDirectory(modsDir, config) {
+  if (!fs.existsSync(modsDir)) {
+    return [];
+  }
+
+  const existingMods = config.mods || [];
+  const dirEntries = await fsp.readdir(modsDir, { withFileTypes: true });
+  const modDirs = dirEntries
+    .filter(entry => entry.isDirectory())
+    .map(entry => path.join(modsDir, entry.name));
+
+  // Remove mods from config that no longer exist on disk
+  const validMods = existingMods.filter(mod => fs.existsSync(mod.dir));
+
+  // Add new mods found on disk that aren't in config
+  const newMods = [];
+  for (const modDir of modDirs) {
+    const existingMod = validMods.find(mod => mod.dir === modDir);
+    if (!existingMod) {
+      try {
+        const newMod = await createModFromDirectory(modDir);
+        newMods.push(newMod);
+      } catch (error) {
+        console.error(`Failed to register mod from ${modDir}:`, error);
+      }
+    }
+  }
+
+  return [...validMods, ...newMods];
+}
+
+async function createModFromDirectory(modDir) {
+  const manifest = await readManifest(modDir);
+  const fallbackName = path.basename(modDir);
+  return {
+    id: makeId(modDir),
+    name: manifest?.name || fallbackName,
+    version: manifest?.version || "1.0.0",
+    author: manifest?.author || "Unknown",
+    description: manifest?.description || "No description provided.",
+    enabled: false, // New mods start disabled
+    dir: modDir,
+    dateAdded: Date.now(),
+    sizeBytes: await computeDirectorySizeBytes(modDir),
+    thumbnailPath: await findThumbnailPath(modDir, manifest),
+  };
 }
 
 export const api = {

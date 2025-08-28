@@ -24,16 +24,30 @@ const ModsPage: React.FC = () => {
   const [sortDir, setSortDir] = React.useState<"asc" | "desc">("asc");
   const [loading, setLoading] = React.useState<boolean>(true);
   const [error, setError] = React.useState<string | null>(null);
+  const [modsDir, setModsDir] = React.useState<string>("");
+  const [needsSetup, setNeedsSetup] = React.useState<boolean>(false);
   const { toasts, dismissToast, success, error: showError } = useToast();
 
   const refresh = React.useCallback(async () => {
     try {
       setLoading(true);
-      const items = await window.electronAPI.mods.list();
-      setMods(items);
-      setError(null);
+      // Check if mods directory is configured
+      const settings = await window.electronAPI.settings.get();
+      setModsDir(settings.modsDir || "");
+      
+      if (!settings.modsDir || settings.modsDir.trim() === "") {
+        setNeedsSetup(true);
+        setMods([]);
+        setError(null);
+      } else {
+        setNeedsSetup(false);
+        const items = await window.electronAPI.mods.list();
+        setMods(items);
+        setError(null);
+      }
     } catch (e: any) {
       setError(e?.message || "Failed to load mods");
+      setNeedsSetup(false);
     } finally {
       setLoading(false);
     }
@@ -42,6 +56,20 @@ const ModsPage: React.FC = () => {
   React.useEffect(() => {
     refresh();
   }, [refresh]);
+
+  const handleSelectModsFolder = async () => {
+    try {
+      const dir = await window.electronAPI.selectModsFolder();
+      if (dir) {
+        await window.electronAPI.settings.set({ modsDir: dir });
+        setModsDir(dir);
+        await refresh();
+        success("Mods folder selected", `Using: ${dir}`);
+      }
+    } catch (error: any) {
+      showError("Failed to select folder", error?.message || "Unknown error");
+    }
+  };
 
   const handleEnableToggle = async (mod: ModItem) => {
     if (mod.enabled) {
@@ -183,20 +211,20 @@ const ModsPage: React.FC = () => {
           <div className="flex gap-3">
             <motion.button
               onClick={handleChooseZip}
-              disabled={importState === "importing"}
-              className="gaming-button-primary flex items-center gap-2"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+              disabled={importState === "importing" || needsSetup}
+              className="gaming-button-primary flex items-center gap-2 disabled:opacity-50"
+              whileHover={{ scale: importState === "importing" || needsSetup ? 1 : 1.05 }}
+              whileTap={{ scale: importState === "importing" || needsSetup ? 1 : 0.95 }}
             >
               <Upload size={16} />
               Import ZIP
             </motion.button>
             <motion.button
               onClick={handleChooseFolder}
-              disabled={importState === "importing"}
-              className="gaming-button-secondary flex items-center gap-2"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+              disabled={importState === "importing" || needsSetup}
+              className="gaming-button-secondary flex items-center gap-2 disabled:opacity-50"
+              whileHover={{ scale: importState === "importing" || needsSetup ? 1 : 1.05 }}
+              whileTap={{ scale: importState === "importing" || needsSetup ? 1 : 0.95 }}
             >
               <FolderOpen size={16} />
               Import Folder
@@ -204,66 +232,87 @@ const ModsPage: React.FC = () => {
           </div>
         </motion.div>
 
+        {/* Status Bar */}
+        {!needsSetup && modsDir && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: 0.1 }}
+            className="p-3 glass-panel rounded-xl flex items-center gap-3"
+          >
+            <FolderOpen size={16} className="text-gaming-accent-cyan" />
+            <span className="text-sm text-gaming-text-secondary">
+              Mods Directory:
+            </span>
+            <span className="text-sm font-mono text-gaming-text-primary bg-gaming-bg-card/60 px-2 py-1 rounded">
+              {modsDir}
+            </span>
+          </motion.div>
+        )}
+
         {/* Controls Bar */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay: 0.1 }}
-          className="flex items-center justify-between gap-4 p-4 glass-panel rounded-2xl"
-        >
-          {/* Search */}
-          <div className="flex items-center gap-4 flex-1 max-w-md">
-            <div className="relative flex-1">
-              <input
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search mods..."
-                className="w-full pl-4 pr-4 py-2.5 rounded-xl bg-gaming-bg-card/60 border border-gaming-border-accent/30 text-sm font-medium placeholder:text-gaming-text-muted focus:outline-none focus:border-gaming-accent-cyan/50 focus:shadow-glow transition-all duration-300"
-              />
+        {!needsSetup && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: 0.1 }}
+            className="flex items-center justify-between gap-4 p-4 glass-panel rounded-2xl"
+          >
+            {/* Search */}
+            <div className="flex items-center gap-4 flex-1 max-w-md">
+              <div className="relative flex-1">
+                <input
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="Search mods..."
+                  className="w-full pl-4 pr-4 py-2.5 rounded-xl bg-gaming-bg-card/60 border border-gaming-border-accent/30 text-sm font-medium placeholder:text-gaming-text-muted focus:outline-none focus:border-gaming-accent-cyan/50 focus:shadow-glow transition-all duration-300"
+                />
+              </div>
             </div>
-          </div>
 
-          {/* Sort Controls */}
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-2 px-3 py-2 glass-panel rounded-xl">
-              <Filter size={14} className="text-gaming-text-muted" />
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as any)}
-                className="bg-transparent text-sm font-medium focus:outline-none text-gaming-text-primary"
+            {/* Sort Controls */}
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 px-3 py-2 glass-panel rounded-xl">
+                <Filter size={14} className="text-gaming-text-muted" />
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value as any)}
+                  className="bg-transparent text-sm font-medium focus:outline-none text-gaming-text-primary"
+                >
+                  <option value="name">Name</option>
+                  <option value="date">Date</option>
+                  <option value="size">Size</option>
+                </select>
+              </div>
+
+              <motion.button
+                onClick={() => setSortDir((d) => (d === "asc" ? "desc" : "asc"))}
+                className="p-2 glass-panel rounded-xl hover:bg-gaming-bg-overlay/50 transition-colors"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                title="Toggle sort direction"
               >
-                <option value="name">Name</option>
-                <option value="date">Date</option>
-                <option value="size">Size</option>
-              </select>
+                <ArrowUpDown size={14} className="text-gaming-text-muted" />
+              </motion.button>
             </div>
-
-            <motion.button
-              onClick={() => setSortDir((d) => (d === "asc" ? "desc" : "asc"))}
-              className="p-2 glass-panel rounded-xl hover:bg-gaming-bg-overlay/50 transition-colors"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              title="Toggle sort direction"
-            >
-              <ArrowUpDown size={14} className="text-gaming-text-muted" />
-            </motion.button>
-          </div>
-        </motion.div>
+          </motion.div>
+        )}
 
         {/* Drag & Drop Zone */}
-        <motion.div
-          onDragOver={onDragOver}
-          onDragLeave={onDragLeave}
-          onDrop={onDrop}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay: 0.2 }}
-          className={`relative rounded-2xl border-2 border-dashed p-8 transition-all duration-300 ${
-            importState === "drag"
-              ? "border-gaming-accent-cyan/70 bg-gaming-accent-cyan/10 shadow-glow"
-              : "border-gaming-border-accent/30 bg-gaming-bg-card/30 hover:border-gaming-border-accent/50"
-          }`}
-        >
+        {!needsSetup && (
+          <motion.div
+            onDragOver={onDragOver}
+            onDragLeave={onDragLeave}
+            onDrop={onDrop}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: 0.2 }}
+            className={`relative rounded-2xl border-2 border-dashed p-8 transition-all duration-300 ${
+              importState === "drag"
+                ? "border-gaming-accent-cyan/70 bg-gaming-accent-cyan/10 shadow-glow"
+                : "border-gaming-border-accent/30 bg-gaming-bg-card/30 hover:border-gaming-border-accent/50"
+            }`}
+          >
           <div className="text-center">
             <motion.div
               className={`mx-auto w-16 h-16 rounded-2xl flex items-center justify-center mb-4 transition-colors ${
@@ -306,7 +355,8 @@ const ModsPage: React.FC = () => {
               Supports .zip files and mod folders
             </p>
           </div>
-        </motion.div>
+          </motion.div>
+        )}
 
         {/* Loading State */}
         {loading && (
@@ -342,8 +392,36 @@ const ModsPage: React.FC = () => {
           </motion.div>
         )}
 
+        {/* Setup Required State */}
+        {!loading && needsSetup && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center py-16"
+          >
+            <div className="w-24 h-24 mx-auto mb-6 rounded-3xl bg-gaming-accent-cyan/10 flex items-center justify-center">
+              <FolderOpen size={32} className="text-gaming-accent-cyan" />
+            </div>
+            <h3 className="text-xl font-semibold text-gaming-text-primary mb-2">
+              Select Your Mods Folder
+            </h3>
+            <p className="text-gaming-text-secondary mb-6 max-w-md mx-auto">
+              To get started, please select your ZZMI mods folder. This is where your mods will be stored and managed.
+            </p>
+            <motion.button
+              onClick={handleSelectModsFolder}
+              className="gaming-button-primary flex items-center gap-2 mx-auto"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <FolderOpen size={16} />
+              Select Mods Folder
+            </motion.button>
+          </motion.div>
+        )}
+
         {/* Empty State */}
-        {!loading && mods.length === 0 && !error && (
+        {!loading && !needsSetup && mods.length === 0 && !error && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
