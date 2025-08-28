@@ -1,6 +1,11 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { FolderOpen, Save, Trash2, Settings as SettingsIcon } from "lucide-react";
+import {
+  FolderOpen,
+  Save,
+  Trash2,
+  Settings as SettingsIcon,
+} from "lucide-react";
 
 const SettingsPage: React.FC = () => {
   const [gameDir, setGameDir] = React.useState<string>("");
@@ -9,21 +14,56 @@ const SettingsPage: React.FC = () => {
   const [clearing, setClearing] = React.useState<boolean>(false);
 
   React.useEffect(() => {
-    (async () => {
-      const s = await window.electronAPI.settings.get();
-      setGameDir(s.gameDir || "");
-      setModsDir(s.modsDir || "");
-    })();
+    console.log("SettingsPage mounted, checking electronAPI:", window.electronAPI);
+    
+    const checkAPI = () => {
+      if (window.electronAPI?.settings?.get) {
+        console.log("electronAPI is available, loading settings");
+        window.electronAPI.settings.get().then(s => {
+          setGameDir(s.gameDir || "");
+          setModsDir(s.modsDir || "");
+        });
+      } else {
+        console.log("electronAPI not ready, retrying in 100ms");
+        setTimeout(checkAPI, 100);
+      }
+    };
+    
+    checkAPI();
   }, []);
 
   const chooseGameDir = async () => {
+    if (!window.electronAPI?.settings?.chooseGameDir) {
+      console.error('electronAPI not available');
+      return;
+    }
     const dir = await window.electronAPI.settings.chooseGameDir();
     if (dir) setGameDir(dir);
   };
 
   const chooseModsDir = async () => {
-    const dir = await window.electronAPI.settings.chooseModsDir();
-    if (dir) setModsDir(dir);
+    console.log('Browse button clicked');
+    console.log('window.electronAPI:', window.electronAPI);
+    console.log('selectModsFolder function:', window.electronAPI?.selectModsFolder);
+    
+    if (!window.electronAPI?.selectModsFolder) {
+      console.error('electronAPI.selectModsFolder not available');
+      return;
+    }
+    
+    try {
+      const dir = await window.electronAPI.selectModsFolder();
+      console.log('Selected directory:', dir);
+      if (dir) {
+        setModsDir(dir);
+        // Update the settings immediately
+        if (window.electronAPI?.settings?.set) {
+          await window.electronAPI.settings.set({ modsDir: dir });
+        }
+      }
+    } catch (error) {
+      console.error('Error selecting mods folder:', error);
+    }
   };
 
   const save = async () => {
@@ -129,7 +169,7 @@ const SettingsPage: React.FC = () => {
             <Save size={16} />
             {saving ? "Saving..." : "Save Settings"}
           </motion.button>
-          
+
           <motion.button
             onClick={clearBackups}
             disabled={clearing}

@@ -42,6 +42,7 @@ declare global {
   interface Window {
     electronAPI: {
       getVersion: () => Promise<string>;
+      selectModsFolder: () => Promise<string | null>;
       mods: ModsAPI;
       settings: SettingsAPI;
     };

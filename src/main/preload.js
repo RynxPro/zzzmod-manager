@@ -1,7 +1,11 @@
-import { contextBridge, ipcRenderer } from "electron";
+const { ipcRenderer } = require("electron");
 
-contextBridge.exposeInMainWorld("electronAPI", {
+console.log("Preload script is executing");
+
+// With nodeIntegration enabled, we can directly assign to window
+window.electronAPI = {
   getVersion: () => ipcRenderer.invoke("app:getVersion"),
+  selectModsFolder: () => ipcRenderer.invoke("dialog:selectModsFolder"),
   mods: {
     list: () => ipcRenderer.invoke("mods:list"),
     enable: (id) => ipcRenderer.invoke("mods:enable", id),
@@ -20,4 +24,6 @@ contextBridge.exposeInMainWorld("electronAPI", {
     chooseModsDir: () => ipcRenderer.invoke("settings:chooseModsDir"),
     clearBackups: () => ipcRenderer.invoke("settings:clearBackups"),
   },
-});
+};
+
+console.log("electronAPI assigned to window");

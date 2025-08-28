@@ -18,6 +18,9 @@ const isDev = !app.isPackaged;
  * Creates the main application window.
  */
 function createMainWindow() {
+  const preloadPath = path.resolve(__dirname, "preload.js");
+  console.log("Preload path:", preloadPath);
+  
   const mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
@@ -25,11 +28,43 @@ function createMainWindow() {
     minHeight: 600,
     title: "ZZZ Mod Manager",
     webPreferences: {
-      preload: path.join(__dirname, "preload.js"),
-      contextIsolation: true,
-      nodeIntegration: false,
+      preload: preloadPath,
+      contextIsolation: false,
+      nodeIntegration: true,
       sandbox: false,
+      webSecurity: false,
     },
+  });
+
+  mainWindow.webContents.once('did-finish-load', () => {
+    console.log("Page loaded, manually injecting electronAPI");
+    mainWindow.webContents.executeJavaScript(`
+      const { ipcRenderer } = require("electron");
+      
+      window.electronAPI = {
+        getVersion: () => ipcRenderer.invoke("app:getVersion"),
+        selectModsFolder: () => ipcRenderer.invoke("dialog:selectModsFolder"),
+        mods: {
+          list: () => ipcRenderer.invoke("mods:list"),
+          enable: (id) => ipcRenderer.invoke("mods:enable", id),
+          disable: (id) => ipcRenderer.invoke("mods:disable", id),
+          remove: (id) => ipcRenderer.invoke("mods:delete", id),
+          importZip: (zipPath) => ipcRenderer.invoke("mods:importZip", zipPath),
+          importFolder: (folderPath) => ipcRenderer.invoke("mods:importFolder", folderPath),
+          chooseZip: () => ipcRenderer.invoke("mods:chooseZip"),
+          chooseFolder: () => ipcRenderer.invoke("mods:chooseFolder"),
+        },
+        settings: {
+          get: () => ipcRenderer.invoke("settings:get"),
+          set: (partial) => ipcRenderer.invoke("settings:set", partial),
+          chooseGameDir: () => ipcRenderer.invoke("settings:chooseGameDir"),
+          chooseModsDir: () => ipcRenderer.invoke("settings:chooseModsDir"),
+          clearBackups: () => ipcRenderer.invoke("settings:clearBackups"),
+        },
+      };
+      
+      console.log("electronAPI manually injected:", window.electronAPI);
+    `);
   });
 
   if (isDev) {
@@ -113,4 +148,19 @@ app.whenReady().then(() => {
     return dir;
   });
   ipcMain.handle("settings:clearBackups", async () => clearBackups());
+
+  // Dialog IPC
+  ipcMain.handle("dialog:selectModsFolder", async () => {
+    const result = await dialog.showOpenDialog({
+      properties: ["openDirectory"],
+      title: "Select Mods Folder",
+      buttonLabel: "Select Folder",
+    });
+    
+    if (result.canceled || result.filePaths.length === 0) {
+      return null;
+    }
+    
+    return result.filePaths[0];
+  });
 });
