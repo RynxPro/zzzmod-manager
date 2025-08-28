@@ -1,16 +1,16 @@
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  Upload, 
-  FolderOpen, 
-  Filter, 
-  ArrowUpDown, 
-  Power, 
-  Trash2, 
+import {
+  Upload,
+  FolderOpen,
+  Filter,
+  ArrowUpDown,
+  Power,
+  Trash2,
   AlertTriangle,
   Download,
   Calendar,
-  HardDrive
+  HardDrive,
 } from "lucide-react";
 
 type ImportState = "idle" | "drag" | "importing";
@@ -127,7 +127,7 @@ const ModsPage: React.FC = () => {
             Manage your ZZZ modifications
           </p>
         </div>
-        
+
         {/* Import Actions */}
         <div className="flex gap-3">
           <motion.button
@@ -186,7 +186,7 @@ const ModsPage: React.FC = () => {
               <option value="size">Size</option>
             </select>
           </div>
-          
+
           <motion.button
             onClick={() => setSortDir((d) => (d === "asc" ? "desc" : "asc"))}
             className="p-2 glass-panel rounded-xl hover:bg-gaming-bg-overlay/50 transition-colors"
@@ -220,26 +220,36 @@ const ModsPage: React.FC = () => {
                 ? "bg-gaming-accent-cyan/20 text-gaming-accent-cyan"
                 : "bg-gaming-bg-overlay/50 text-gaming-text-muted"
             }`}
-            animate={{ 
+            animate={{
               scale: importState === "drag" ? [1, 1.1, 1] : 1,
-              rotate: importState === "importing" ? 360 : 0
+              rotate: importState === "importing" ? 360 : 0,
             }}
-            transition={{ 
-              scale: { duration: 0.5, repeat: importState === "drag" ? Infinity : 0 },
-              rotate: { duration: 1, repeat: importState === "importing" ? Infinity : 0, ease: "linear" }
+            transition={{
+              scale: {
+                duration: 0.5,
+                repeat: importState === "drag" ? Infinity : 0,
+              },
+              rotate: {
+                duration: 1,
+                repeat: importState === "importing" ? Infinity : 0,
+                ease: "linear",
+              },
             }}
           >
             <Download size={24} />
           </motion.div>
-          <p className={`text-sm font-medium mb-2 ${
-            importState === "drag" ? "text-gaming-accent-cyan" : "text-gaming-text-secondary"
-          }`}>
-            {importState === "importing" 
-              ? "Importing mods..." 
+          <p
+            className={`text-sm font-medium mb-2 ${
+              importState === "drag"
+                ? "text-gaming-accent-cyan"
+                : "text-gaming-text-secondary"
+            }`}
+          >
+            {importState === "importing"
+              ? "Importing mods..."
               : importState === "drag"
               ? "Drop files here to import"
-              : "Drag & drop mod ZIPs or folders here"
-            }
+              : "Drag & drop mod ZIPs or folders here"}
           </p>
           <p className="text-xs text-gaming-text-muted">
             Supports .zip files and mod folders
@@ -260,7 +270,9 @@ const ModsPage: React.FC = () => {
               animate={{ rotate: 360 }}
               transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
             />
-            <span className="text-gaming-text-secondary font-medium">Loading mods...</span>
+            <span className="text-gaming-text-secondary font-medium">
+              Loading mods...
+            </span>
           </div>
         </motion.div>
       )}
@@ -273,7 +285,9 @@ const ModsPage: React.FC = () => {
           className="p-4 rounded-2xl bg-gaming-status-conflict/10 border border-gaming-status-conflict/30 flex items-center gap-3"
         >
           <AlertTriangle size={20} className="text-gaming-status-conflict" />
-          <span className="text-gaming-status-conflict font-medium">{error}</span>
+          <span className="text-gaming-status-conflict font-medium">
+            {error}
+          </span>
         </motion.div>
       )}
 
@@ -291,7 +305,8 @@ const ModsPage: React.FC = () => {
             No mods installed yet
           </h3>
           <p className="text-gaming-text-secondary mb-6 max-w-md mx-auto">
-            Get started by importing your first mod using the buttons above or drag & drop files here.
+            Get started by importing your first mod using the buttons above or
+            drag & drop files here.
           </p>
           <div className="flex gap-3 justify-center">
             <button
@@ -347,16 +362,16 @@ const ModsPage: React.FC = () => {
                   initial={{ opacity: 0, y: 20, scale: 0.95 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: -20, scale: 0.95 }}
-                  transition={{ 
-                    duration: 0.3, 
+                  transition={{
+                    duration: 0.3,
                     delay: index * 0.05,
                     type: "spring",
                     stiffness: 300,
-                    damping: 30
+                    damping: 30,
                   }}
-                  whileHover={{ 
+                  whileHover={{
                     y: -8,
-                    transition: { duration: 0.2 }
+                    transition: { duration: 0.2 },
                   }}
                   className="group relative"
                 >
@@ -367,7 +382,7 @@ const ModsPage: React.FC = () => {
                       className="absolute inset-0 bg-gradient-to-br from-gaming-accent-cyan/5 via-transparent to-gaming-accent-violet/5 opacity-0 group-hover:opacity-100"
                       transition={{ duration: 0.3 }}
                     />
-                    
+
                     {/* Thumbnail Section */}
                     {mod.thumbnailPath && (
                       <div className="relative overflow-hidden">
@@ -379,7 +394,7 @@ const ModsPage: React.FC = () => {
                           transition={{ duration: 0.3 }}
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-gaming-bg-card/80 via-transparent to-transparent" />
-                        
+
                         {/* Status Badges Overlay */}
                         <div className="absolute top-3 right-3 flex gap-2">
                           {mod.hasConflict && (
@@ -460,7 +475,7 @@ const ModsPage: React.FC = () => {
                           <Power size={14} />
                           {mod.enabled ? "Disable" : "Enable"}
                         </motion.button>
-                        
+
                         <motion.button
                           onClick={() => handleDelete(mod)}
                           className="p-2.5 rounded-xl bg-gaming-status-conflict/20 hover:bg-gaming-status-conflict/30 text-gaming-status-conflict border border-gaming-status-conflict/30 hover:shadow-glow transition-all duration-200"

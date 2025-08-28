@@ -1,5 +1,5 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&display=swap");
 
 @tailwind base;
 @tailwind components;
@@ -14,7 +14,7 @@ body,
 
 body {
   @apply font-sans text-gaming-text-primary bg-gaming-bg-primary;
-  font-feature-settings: 'liga' 1, 'kern' 1;
+  font-feature-settings: "liga" 1, "kern" 1;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -43,29 +43,30 @@ body {
   .text-glow {
     text-shadow: 0 0 10px currentColor;
   }
-  
+
   .border-glow {
     border: 1px solid transparent;
     background: linear-gradient(var(--tw-gradient-stops)) border-box;
-    -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+    -webkit-mask: linear-gradient(#fff 0 0) padding-box,
+      linear-gradient(#fff 0 0);
     -webkit-mask-composite: destination-out;
     mask-composite: exclude;
   }
-  
+
   .glass-panel {
     @apply bg-gaming-bg-card/80 backdrop-blur-gaming border border-white/10;
   }
-  
+
   .gaming-button {
     @apply px-4 py-2 rounded-lg font-medium transition-all duration-200 transform;
     @apply hover:scale-105 active:scale-95;
   }
-  
+
   .gaming-button-primary {
     @apply gaming-button bg-gradient-to-r from-gaming-accent-cyan to-gaming-accent-violet;
     @apply text-gaming-bg-primary shadow-glow hover:shadow-glowPurple;
   }
-  
+
   .gaming-button-secondary {
     @apply gaming-button glass-panel text-gaming-text-primary;
     @apply hover:bg-gaming-bg-overlay/80 hover:shadow-glass;
