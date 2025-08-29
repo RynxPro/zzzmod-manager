@@ -24,6 +24,12 @@ window.electronAPI = {
     chooseModsDir: () => ipcRenderer.invoke("settings:chooseModsDir"),
     clearBackups: () => ipcRenderer.invoke("settings:clearBackups"),
   },
+  recentFolders: {
+    get: () => ipcRenderer.invoke("recentFolders:get"),
+    clear: () => ipcRenderer.invoke("recentFolders:clear"),
+  },
+  // Drag-and-drop support: send dragged files to main process
+  sendDraggedFiles: (filePaths) => ipcRenderer.send("dragged-files", filePaths),
 };
 
 console.log("electronAPI assigned to window");
