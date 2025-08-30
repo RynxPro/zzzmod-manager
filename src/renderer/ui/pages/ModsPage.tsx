@@ -94,6 +94,9 @@ const ModsPage: React.FC = () => {
         !mod.enabled
       );
       if (result.success) {
+        setMods((prevMods) =>
+          prevMods.map((m) => (m.id === mod.id ? result.mod : m))
+        );
         success(
           `Mod ${!mod.enabled ? "enabled" : "disabled"}`,
           `${mod.name} is now ${!mod.enabled ? "active" : "inactive"}`
@@ -105,7 +108,6 @@ const ModsPage: React.FC = () => {
       showError("Failed to toggle mod", e?.message || "Unknown error");
     } finally {
       setTogglingMods((prev) => ({ ...prev, [mod.id]: false }));
-      await refresh();
     }
   };
 

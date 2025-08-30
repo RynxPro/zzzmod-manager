@@ -218,6 +218,8 @@ async function registerMod(modDir) {
   const config = await readConfig();
   const manifest = await readManifest(modDir);
   const mod = await buildModObject(modDir, manifest);
+  mod.enabled = false;
+  mod.activePath = null;
   const existingIndex = config.mods.findIndex((m) => m.id === mod.id);
   if (existingIndex >= 0) {
     config.mods[existingIndex] = mod;
@@ -234,24 +236,27 @@ async function toggleMod(modId, turnOn) {
     const idx = config.mods.findIndex((m) => m.id === modId);
     if (idx === -1) return { success: false, message: "Mod not found" };
     const mod = config.mods[idx];
+
     const activeModsDir = getActiveModsDir(config.settings);
-    if (!fs.existsSync(activeModsDir)) {
+    if (!fs.existsSync(activeModsDir))
       await fsp.mkdir(activeModsDir, { recursive: true });
-    }
+
     const destDir = path.join(activeModsDir, path.basename(mod.dir));
 
     if (turnOn) {
-      if (fs.existsSync(destDir)) {
-        await fsp.rm(destDir, { recursive: true, force: true });
-      }
-      await copyDirectory(mod.dir, destDir);
+      // Enable: copy folder to zzmi/mods if not already present
+      if (!fs.existsSync(destDir)) await copyDirectory(mod.dir, destDir);
+      mod.activePath = destDir;
+      mod.enabled = true;
     } else {
-      if (fs.existsSync(destDir)) {
-        await fsp.rm(destDir, { recursive: true, force: true });
-      }
+      // Disable: remove from zzmi/mods using activePath or fallback to computed path
+      const pathToRemove = mod.activePath || destDir;
+      if (fs.existsSync(pathToRemove))
+        await fsp.rm(pathToRemove, { recursive: true, force: true });
+      mod.activePath = null;
+      mod.enabled = false;
     }
 
-    mod.enabled = turnOn;
     config.mods[idx] = mod;
     await writeConfig(config);
 
