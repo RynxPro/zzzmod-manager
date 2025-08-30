@@ -1,3 +1,20 @@
+// Returns the currently active mods
+async function listActive() {
+  const config = await readConfig();
+  const activeModsDir = getActiveModsDir(config.settings);
+  if (!fs.existsSync(activeModsDir)) return [];
+
+  const dirEntries = await fsp.readdir(activeModsDir, { withFileTypes: true });
+  const modDirs = dirEntries
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => path.join(activeModsDir, entry.name));
+
+  const activeMods = (config.mods || []).filter((mod) =>
+    modDirs.includes(mod.dir)
+  );
+
+  return activeMods;
+}
 import fs from "node:fs";
 import fsp from "node:fs/promises";
 import path from "node:path";
@@ -7,15 +24,17 @@ import AdmZip from "adm-zip";
 
 const APP_DIR = app.getPath("userData");
 const DATA_DIR = path.join(APP_DIR, "data");
-let MODS_DIR = path.join(DATA_DIR, "mods");
-const BACKUPS_DIR = path.join(DATA_DIR, "backups");
+const MANAGER_MODS_DIR = path.join(DATA_DIR, "mods");
+const ACTIVE_MODS_DIR = path.join(DATA_DIR, "zzmi", "mods");
 const CONFIG_PATH = path.join(DATA_DIR, "config.json");
 
 function ensureDirs() {
   if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
-  if (!fs.existsSync(MODS_DIR)) fs.mkdirSync(MODS_DIR, { recursive: true });
-  if (!fs.existsSync(BACKUPS_DIR))
-    fs.mkdirSync(BACKUPS_DIR, { recursive: true });
+  if (!fs.existsSync(MANAGER_MODS_DIR))
+    fs.mkdirSync(MANAGER_MODS_DIR, { recursive: true });
+  if (!fs.existsSync(ACTIVE_MODS_DIR))
+    fs.mkdirSync(ACTIVE_MODS_DIR, { recursive: true });
+  return MANAGER_MODS_DIR; // return the path for convenience
 }
 
 async function readConfig() {
@@ -28,8 +47,7 @@ async function readConfig() {
     if (err?.code === "ENOENT") {
       const initial = {
         mods: [],
-        settings: { gameDir: "", modsDir: "" },
-        appliedFiles: {},
+        settings: { modsDir: ACTIVE_MODS_DIR },
       };
       await fsp.writeFile(
         CONFIG_PATH,
@@ -56,24 +74,26 @@ async function listMods() {
   return config.mods;
 }
 
-function getEffectiveModsDir(settings) {
+function getManagerModsDir() {
+  if (!fs.existsSync(MANAGER_MODS_DIR)) {
+    fs.mkdirSync(MANAGER_MODS_DIR, { recursive: true });
+  }
+  return MANAGER_MODS_DIR;
+}
+
+function getActiveModsDir(settings) {
   return settings?.modsDir && settings.modsDir.trim().length > 0
     ? settings.modsDir
-    : null;
+    : ACTIVE_MODS_DIR;
 }
 
 async function importFromZip(zipPath) {
   ensureDirs();
   const cfg = await readConfig();
-  MODS_DIR = getEffectiveModsDir(cfg.settings) || MODS_DIR;
-  if (!MODS_DIR) {
-    throw new Error(
-      "No mods directory configured. Please select a mods folder in Settings."
-    );
-  }
-  if (!fs.existsSync(MODS_DIR)) fs.mkdirSync(MODS_DIR, { recursive: true });
+  const modsDir = getManagerModsDir();
+  if (!fs.existsSync(modsDir)) fs.mkdirSync(modsDir, { recursive: true });
   const baseName = path.basename(zipPath, path.extname(zipPath));
-  const targetDir = path.join(MODS_DIR, baseName);
+  const targetDir = path.join(modsDir, baseName);
   const uniqueDir = await uniqueDirectory(targetDir);
   const zip = new AdmZip(zipPath);
   zip.extractAllTo(uniqueDir, true);
@@ -83,15 +103,10 @@ async function importFromZip(zipPath) {
 async function importFromFolder(folderPath) {
   ensureDirs();
   const cfg = await readConfig();
-  MODS_DIR = getEffectiveModsDir(cfg.settings) || MODS_DIR;
-  if (!MODS_DIR) {
-    throw new Error(
-      "No mods directory configured. Please select a mods folder in Settings."
-    );
-  }
-  if (!fs.existsSync(MODS_DIR)) fs.mkdirSync(MODS_DIR, { recursive: true });
+  const modsDir = getManagerModsDir();
+  if (!fs.existsSync(modsDir)) fs.mkdirSync(modsDir, { recursive: true });
   const baseName = path.basename(folderPath);
-  const targetDir = path.join(MODS_DIR, baseName);
+  const targetDir = path.join(modsDir, baseName);
   const uniqueDir = await uniqueDirectory(targetDir);
   await copyDirectory(folderPath, uniqueDir);
   return await registerMod(uniqueDir);
@@ -191,7 +206,7 @@ async function registerMod(modDir) {
     version: manifest?.version || "1.0.0",
     author: manifest?.author || "Unknown",
     description: manifest?.description || "No description provided.",
-    enabled: true,
+    enabled: false,
     dir: modDir,
     dateAdded: Date.now(),
     sizeBytes: await computeDirectorySizeBytes(modDir),
@@ -211,7 +226,27 @@ async function setEnabled(modId, enabled) {
   const config = await readConfig();
   const idx = config.mods.findIndex((m) => m.id === modId);
   if (idx === -1) return false;
-  config.mods[idx].enabled = enabled;
+  const mod = config.mods[idx];
+  const activeModsDir = getActiveModsDir(config.settings);
+  if (!fs.existsSync(activeModsDir)) {
+    await fsp.mkdir(activeModsDir, { recursive: true });
+  }
+  const destDir = path.join(activeModsDir, path.basename(mod.dir));
+
+  if (enabled) {
+    // Copy mod folder from manager library to active mods folder
+    if (fs.existsSync(destDir)) {
+      await fsp.rm(destDir, { recursive: true, force: true });
+    }
+    await copyDirectory(mod.dir, destDir);
+  } else {
+    // Remove mod folder from active mods folder
+    if (fs.existsSync(destDir)) {
+      await fsp.rm(destDir, { recursive: true, force: true });
+    }
+  }
+
+  mod.enabled = enabled;
   await writeConfig(config);
   return true;
 }
@@ -221,68 +256,42 @@ async function deleteMod(modId) {
   const idx = config.mods.findIndex((m) => m.id === modId);
   if (idx === -1) return false;
   const mod = config.mods[idx];
-  await removeDirectory(mod.dir);
+  // Remove from manager mods folder
+  if (fs.existsSync(mod.dir)) {
+    await fsp.rm(mod.dir, { recursive: true, force: true });
+  }
+  // Remove from active mods folder if present
+  const activeModsDir = getActiveModsDir(config.settings);
+  const activeModDir = path.join(activeModsDir, path.basename(mod.dir));
+  if (fs.existsSync(activeModDir)) {
+    await fsp.rm(activeModDir, { recursive: true, force: true });
+  }
   config.mods.splice(idx, 1);
   await writeConfig(config);
   return true;
 }
 
-async function removeDirectory(dirPath) {
-  try {
-    await fsp.rm(dirPath, { recursive: true, force: true });
-  } catch (e) {}
-}
-
-export const paths = { APP_DIR, DATA_DIR, MODS_DIR, CONFIG_PATH };
+export const paths = {
+  APP_DIR,
+  DATA_DIR,
+  MODS_DIR: MANAGER_MODS_DIR,
+  CONFIG_PATH,
+};
 
 async function listModsEnriched() {
   const cfg = await readConfig();
-  const modsDir = getEffectiveModsDir(cfg.settings);
+  const modsDir = getManagerModsDir();
 
-  if (!modsDir) {
-    return [];
-  }
+  if (!fs.existsSync(modsDir)) return [];
 
   const items = await syncModsFromDirectory(modsDir, cfg);
-
-  const updated = [];
-  for (const item of items) {
-    const next = { ...item };
-    if (next.dateAdded == null) next.dateAdded = Date.now();
-    if (next.sizeBytes == null && fs.existsSync(next.dir))
-      next.sizeBytes = await computeDirectorySizeBytes(next.dir);
-    if (next.thumbnailPath == null && fs.existsSync(next.dir))
-      next.thumbnailPath = await findThumbnailPath(
-        next.dir,
-        await readManifest(next.dir)
-      );
-    try {
-      const filesForMod = Array.isArray(next.appliedFiles)
-        ? next.appliedFiles
-        : [];
-      next.hasConflict = filesForMod.some((target) => {
-        const owners = cfg.appliedFiles?.[target] || [];
-        return owners.length > 1;
-      });
-    } catch {
-      next.hasConflict = false;
-    }
-    updated.push(next);
-  }
-  if (JSON.stringify(items) !== JSON.stringify(updated)) {
-    const cfg2 = await readConfig();
-    cfg2.mods = updated;
-    await writeConfig(cfg2);
-  }
-  return updated;
+  return Array.isArray(items) ? items : [];
 }
 
 async function syncModsFromDirectory(modsDir, config) {
-  if (!fs.existsSync(modsDir)) {
-    return [];
-  }
+  if (!fs.existsSync(modsDir)) return [];
 
-  const existingMods = config.mods || [];
+  const existingMods = Array.isArray(config.mods) ? config.mods : [];
   const dirEntries = await fsp.readdir(modsDir, { withFileTypes: true });
   const modDirs = dirEntries
     .filter((entry) => entry.isDirectory())
@@ -323,172 +332,31 @@ async function createModFromDirectory(modDir) {
   };
 }
 
+// Settings handling
+async function getSettings() {
+  const config = await readConfig();
+  return config.settings || {};
+}
+
+async function setSettings(newSettings) {
+  const config = await readConfig();
+  config.settings = { ...(config.settings || {}), ...newSettings };
+  await writeConfig(config);
+  return config.settings;
+}
+
+async function listLibrary() {
+  return listModsEnriched();
+}
+
 export const api = {
   listMods: listModsEnriched,
+  listLibrary,
+  listActive, // added
   importFromZip,
   importFromFolder,
   setEnabled,
   deleteMod,
+  getSettings,
+  setSettings,
 };
-
-// ========================= Safe Apply / Revert =========================
-
-async function walkDir(root) {
-  const out = [];
-  async function recurse(current, baseRel) {
-    const entries = await fsp.readdir(current, { withFileTypes: true });
-    for (const entry of entries) {
-      const abs = path.join(current, entry.name);
-      const rel = path.join(baseRel, entry.name);
-      if (entry.isDirectory()) {
-        await recurse(abs, rel);
-      } else if (entry.isFile()) {
-        out.push({ abs, rel });
-      }
-    }
-  }
-  await recurse(root, "");
-  return out;
-}
-
-function isMetaFile(rel) {
-  const lower = rel.toLowerCase();
-  return (
-    lower.endsWith("mod.json") ||
-    lower.endsWith("modinfo.json") ||
-    lower.includes("thumbnail") ||
-    lower.includes("preview") ||
-    lower.includes("cover")
-  );
-}
-
-async function ensureParentDir(filePath) {
-  await fsp.mkdir(path.dirname(filePath), { recursive: true });
-}
-
-async function copyFileSafe(src, dest) {
-  await ensureParentDir(dest);
-  await fsp.copyFile(src, dest);
-}
-
-async function fileExists(p) {
-  try {
-    await fsp.access(p);
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-async function applyModFiles(modId) {
-  const config = await readConfig();
-  const mod = config.mods.find((m) => m.id === modId);
-  if (!mod) throw new Error("Mod not found");
-  const gameDir = config.settings?.gameDir || "";
-  if (!gameDir) throw new Error("Game directory not configured");
-
-  const files = await walkDir(mod.dir);
-  for (const { abs, rel } of files) {
-    if (isMetaFile(rel)) continue;
-    const target = path.join(gameDir, rel);
-    const backup = path.join(BACKUPS_DIR, rel);
-
-    config.appliedFiles ||= {};
-    const owners = config.appliedFiles[target] || [];
-
-    if (owners.length === 0) {
-      if (await fileExists(target)) {
-        await copyFileSafe(target, backup);
-      }
-    }
-
-    await copyFileSafe(abs, target);
-
-    if (!owners.includes(modId)) owners.push(modId);
-    config.appliedFiles[target] = owners;
-
-    mod.appliedFiles ||= [];
-    if (!mod.appliedFiles.includes(target)) mod.appliedFiles.push(target);
-  }
-  await writeConfig(config);
-}
-
-async function revertModFiles(modId) {
-  const config = await readConfig();
-  const mod = config.mods.find((m) => m.id === modId);
-  if (!mod) throw new Error("Mod not found");
-  const gameDir = config.settings?.gameDir || "";
-  if (!gameDir) throw new Error("Game directory not configured");
-
-  const applied = Array.isArray(mod.appliedFiles) ? [...mod.appliedFiles] : [];
-  for (const target of applied) {
-    const owners = config.appliedFiles?.[target] || [];
-    const index = owners.indexOf(modId);
-    if (index >= 0) owners.splice(index, 1);
-
-    if (owners.length > 0) {
-      const nextOwnerId = owners[owners.length - 1];
-      const nextMod = config.mods.find((m) => m.id === nextOwnerId);
-      if (nextMod) {
-        const rel = path.relative(path.join(config.settings.gameDir), target);
-        const src = path.join(nextMod.dir, rel);
-        if (await fileExists(src)) {
-          await copyFileSafe(src, target);
-        }
-      }
-      config.appliedFiles[target] = owners;
-    } else {
-      const rel = path.relative(config.settings.gameDir, target);
-      const backup = path.join(BACKUPS_DIR, rel);
-      if (await fileExists(backup)) {
-        await copyFileSafe(backup, target);
-        await fsp.rm(backup, { force: true });
-      } else {
-        try {
-          await fsp.rm(target, { force: true });
-        } catch {}
-      }
-      delete config.appliedFiles[target];
-    }
-  }
-  mod.appliedFiles = [];
-  await writeConfig(config);
-}
-
-// Wrap setEnabled to apply/revert files safely
-const _setEnabled = setEnabled;
-setEnabled = async function (modId, enabled) {
-  if (enabled) {
-    await applyModFiles(modId);
-  } else {
-    await revertModFiles(modId);
-  }
-  return _setEnabled(modId, enabled);
-};
-
-export const safe = { applyModFiles, revertModFiles };
-
-// ========================= Settings Helpers =========================
-export async function getSettings() {
-  const cfg = await readConfig();
-  return cfg.settings || { gameDir: "" };
-}
-
-export async function setSettings(partial) {
-  const cfg = await readConfig();
-  cfg.settings = {
-    ...(cfg.settings || { gameDir: "", modsDir: "" }),
-    ...partial,
-  };
-  await writeConfig(cfg);
-  return cfg.settings;
-}
-
-export async function clearBackups() {
-  ensureDirs();
-  try {
-    await fsp.rm(BACKUPS_DIR, { recursive: true, force: true });
-  } catch {}
-  await fsp.mkdir(BACKUPS_DIR, { recursive: true });
-  return true;
-}

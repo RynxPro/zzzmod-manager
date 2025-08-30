@@ -1,92 +1,61 @@
 import React from "react";
 import { motion } from "framer-motion";
-import {
-  FolderOpen,
-  Save,
-  Trash2,
-  Settings as SettingsIcon,
-} from "lucide-react";
+import { FolderOpen, Save, Settings as SettingsIcon } from "lucide-react";
 
 const SettingsPage: React.FC = () => {
-  const [gameDir, setGameDir] = React.useState<string>("");
   const [modsDir, setModsDir] = React.useState<string>("");
   const [saving, setSaving] = React.useState<boolean>(false);
-  const [clearing, setClearing] = React.useState<boolean>(false);
 
+  // Load settings on mount, retry if electronAPI is not yet ready
   React.useEffect(() => {
-    console.log(
-      "SettingsPage mounted, checking electronAPI:",
-      window.electronAPI
-    );
-
-    const checkAPI = () => {
+    const loadSettings = async () => {
+      // Wait until electronAPI is available
       if (window.electronAPI?.settings?.get) {
-        console.log("electronAPI is available, loading settings");
-        window.electronAPI.settings.get().then((s) => {
-          setGameDir(s.gameDir || "");
+        try {
+          const s = await window.electronAPI.settings.get();
           setModsDir(s.modsDir || "");
-        });
+        } catch (err) {
+          // Show error if settings cannot be loaded
+          alert("Failed to load settings: " + (err?.message || err));
+        }
       } else {
-        console.log("electronAPI not ready, retrying in 100ms");
-        setTimeout(checkAPI, 100);
+        setTimeout(loadSettings, 100);
       }
     };
-
-    checkAPI();
+    loadSettings();
   }, []);
 
-  const chooseGameDir = async () => {
-    if (!window.electronAPI?.settings?.chooseGameDir) {
-      console.error("electronAPI not available");
-      return;
-    }
-    const dir = await window.electronAPI.settings.chooseGameDir();
-    if (dir) setGameDir(dir);
-  };
-
+  // Select the ZZMI Mods folder
   const chooseModsDir = async () => {
-    console.log("Browse button clicked");
-    console.log("window.electronAPI:", window.electronAPI);
-    console.log(
-      "selectModsFolder function:",
-      window.electronAPI?.selectModsFolder
-    );
-
     if (!window.electronAPI?.selectModsFolder) {
-      console.error("electronAPI.selectModsFolder not available");
+      alert("Mods folder selection is not available.");
       return;
     }
-
     try {
       const dir = await window.electronAPI.selectModsFolder();
-      console.log("Selected directory:", dir);
       if (dir) {
         setModsDir(dir);
-        // Update the settings immediately
+        // Update modsDir in settings immediately
         if (window.electronAPI?.settings?.set) {
           await window.electronAPI.settings.set({ modsDir: dir });
         }
       }
-    } catch (error) {
-      console.error("Error selecting mods folder:", error);
+    } catch (err) {
+      alert("Failed to select mods folder: " + (err?.message || err));
     }
   };
 
+  // Save settings and provide feedback
   const save = async () => {
     setSaving(true);
     try {
-      await window.electronAPI.settings.set({ gameDir, modsDir });
+      await window.electronAPI.settings.set({ modsDir });
+      console.log("Settings saved");
+      alert("Settings saved successfully.");
+    } catch (err) {
+      alert("Failed to save settings: " + (err?.message || err));
     } finally {
       setSaving(false);
-    }
-  };
-
-  const clearBackups = async () => {
-    setClearing(true);
-    try {
-      await window.electronAPI.settings.clearBackups();
-    } finally {
-      setClearing(false);
     }
   };
 
@@ -113,49 +82,33 @@ const SettingsPage: React.FC = () => {
         transition={{ duration: 0.3, delay: 0.1 }}
         className="glass-panel rounded-2xl p-6 space-y-6"
       >
-        {/* Game Directory */}
-        <div className="space-y-3">
-          <label className="flex items-center gap-2 text-sm font-medium text-gaming-text-primary">
-            <SettingsIcon size={16} className="text-gaming-accent-cyan" />
-            Game Directory
-          </label>
-          <div className="flex gap-3">
-            <input
-              value={gameDir}
-              onChange={(e) => setGameDir(e.target.value)}
-              className="flex-1 px-4 py-3 rounded-xl bg-gaming-bg-card/60 border border-gaming-border-accent/30 text-sm font-medium placeholder:text-gaming-text-muted focus:outline-none focus:border-gaming-accent-cyan/50 focus:shadow-glow transition-all duration-300"
-              placeholder="/path/to/zzz/game"
-            />
-            <motion.button
-              onClick={chooseGameDir}
-              className="gaming-button-secondary flex items-center gap-2 px-4 py-3"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-            >
-              <FolderOpen size={16} />
-              Browse
-            </motion.button>
-          </div>
-        </div>
-
         {/* Mods Directory */}
         <div className="space-y-3">
           <label className="flex items-center gap-2 text-sm font-medium text-gaming-text-primary">
             <SettingsIcon size={16} className="text-gaming-accent-violet" />
-            Mods Directory
+            ZZMI Mods Folder
           </label>
           <div className="flex gap-3">
             <input
               value={modsDir}
               onChange={(e) => setModsDir(e.target.value)}
               className="flex-1 px-4 py-3 rounded-xl bg-gaming-bg-card/60 border border-gaming-border-accent/30 text-sm font-medium placeholder:text-gaming-text-muted focus:outline-none focus:border-gaming-accent-cyan/50 focus:shadow-glow transition-all duration-300"
-              placeholder="/path/to/mods"
+              placeholder="Select your ZZMI mods folder"
             />
             <motion.button
               onClick={chooseModsDir}
-              className="gaming-button-secondary flex items-center gap-2 px-4 py-3"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
+              className={`gaming-button-secondary flex items-center gap-2 px-4 py-3${
+                !window.electronAPI?.selectModsFolder
+                  ? " opacity-60 cursor-not-allowed"
+                  : ""
+              }`}
+              whileHover={{
+                scale: window.electronAPI?.selectModsFolder ? 1.02 : 1,
+              }}
+              whileTap={{
+                scale: window.electronAPI?.selectModsFolder ? 0.98 : 1,
+              }}
+              disabled={!window.electronAPI?.selectModsFolder}
             >
               <FolderOpen size={16} />
               Browse
@@ -163,7 +116,7 @@ const SettingsPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Action Buttons */}
+        {/* Save Button */}
         <div className="flex items-center gap-3 pt-4 border-t border-gaming-border-accent/30">
           <motion.button
             onClick={save}
@@ -174,17 +127,6 @@ const SettingsPage: React.FC = () => {
           >
             <Save size={16} />
             {saving ? "Saving..." : "Save Settings"}
-          </motion.button>
-
-          <motion.button
-            onClick={clearBackups}
-            disabled={clearing}
-            className="px-4 py-2.5 rounded-xl bg-gaming-status-conflict/20 hover:bg-gaming-status-conflict/30 text-gaming-status-conflict border border-gaming-status-conflict/30 hover:shadow-glow transition-all duration-200 flex items-center gap-2 disabled:opacity-50"
-            whileHover={{ scale: clearing ? 1 : 1.02 }}
-            whileTap={{ scale: clearing ? 1 : 0.98 }}
-          >
-            <Trash2 size={16} />
-            {clearing ? "Clearing..." : "Clear Backups"}
           </motion.button>
         </div>
       </motion.div>

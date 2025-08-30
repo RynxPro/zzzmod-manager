@@ -34,15 +34,23 @@ const ModsPage: React.FC = () => {
       // Check if mods directory is configured
       const settings = await window.electronAPI.settings.get();
       setModsDir(settings.modsDir || "");
-      
+
       if (!settings.modsDir || settings.modsDir.trim() === "") {
         setNeedsSetup(true);
         setMods([]);
         setError(null);
       } else {
         setNeedsSetup(false);
-        const items = await window.electronAPI.mods.list();
-        setMods(items);
+        // Get all mods in the manager library (zzzmodmanager/mods)
+        const libraryMods = await window.electronAPI.mods.listLibrary();
+        // Get all active mods in zzmi/mods (returns array of mod IDs)
+        const activeIds: string[] = await window.electronAPI.mods.listActive();
+        // Mark enabled status based on whether mod is present in the active folder
+        const modsWithStatus = libraryMods.map((mod: ModItem) => ({
+          ...mod,
+          enabled: activeIds.includes(mod.id),
+        }));
+        setMods(modsWithStatus);
         setError(null);
       }
     } catch (e: any) {
@@ -73,8 +81,10 @@ const ModsPage: React.FC = () => {
 
   const handleEnableToggle = async (mod: ModItem) => {
     if (mod.enabled) {
+      // Remove from zzmi/mods (disable)
       await window.electronAPI.mods.disable(mod.id);
     } else {
+      // Copy from library to zzmi/mods (enable)
       await window.electronAPI.mods.enable(mod.id);
     }
     await refresh();
@@ -82,6 +92,7 @@ const ModsPage: React.FC = () => {
 
   const handleDelete = async (mod: ModItem) => {
     try {
+      // Remove from library (zzzmodmanager/mods). This should remove from both library and active if present.
       await window.electronAPI.mods.remove(mod.id);
       await refresh();
       success("Mod deleted", `${mod.name} has been removed from your library`);
@@ -213,8 +224,12 @@ const ModsPage: React.FC = () => {
               onClick={handleChooseZip}
               disabled={importState === "importing" || needsSetup}
               className="gaming-button-primary flex items-center gap-2 disabled:opacity-50"
-              whileHover={{ scale: importState === "importing" || needsSetup ? 1 : 1.05 }}
-              whileTap={{ scale: importState === "importing" || needsSetup ? 1 : 0.95 }}
+              whileHover={{
+                scale: importState === "importing" || needsSetup ? 1 : 1.05,
+              }}
+              whileTap={{
+                scale: importState === "importing" || needsSetup ? 1 : 0.95,
+              }}
             >
               <Upload size={16} />
               Import ZIP
@@ -223,8 +238,12 @@ const ModsPage: React.FC = () => {
               onClick={handleChooseFolder}
               disabled={importState === "importing" || needsSetup}
               className="gaming-button-secondary flex items-center gap-2 disabled:opacity-50"
-              whileHover={{ scale: importState === "importing" || needsSetup ? 1 : 1.05 }}
-              whileTap={{ scale: importState === "importing" || needsSetup ? 1 : 0.95 }}
+              whileHover={{
+                scale: importState === "importing" || needsSetup ? 1 : 1.05,
+              }}
+              whileTap={{
+                scale: importState === "importing" || needsSetup ? 1 : 0.95,
+              }}
             >
               <FolderOpen size={16} />
               Import Folder
@@ -286,7 +305,9 @@ const ModsPage: React.FC = () => {
               </div>
 
               <motion.button
-                onClick={() => setSortDir((d) => (d === "asc" ? "desc" : "asc"))}
+                onClick={() =>
+                  setSortDir((d) => (d === "asc" ? "desc" : "asc"))
+                }
                 className="p-2 glass-panel rounded-xl hover:bg-gaming-bg-overlay/50 transition-colors"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
@@ -313,48 +334,48 @@ const ModsPage: React.FC = () => {
                 : "border-gaming-border-accent/30 bg-gaming-bg-card/30 hover:border-gaming-border-accent/50"
             }`}
           >
-          <div className="text-center">
-            <motion.div
-              className={`mx-auto w-16 h-16 rounded-2xl flex items-center justify-center mb-4 transition-colors ${
-                importState === "drag"
-                  ? "bg-gaming-accent-cyan/20 text-gaming-accent-cyan"
-                  : "bg-gaming-bg-overlay/50 text-gaming-text-muted"
-              }`}
-              animate={{
-                scale: importState === "drag" ? [1, 1.1, 1] : 1,
-                rotate: importState === "importing" ? 360 : 0,
-              }}
-              transition={{
-                scale: {
-                  duration: 0.5,
-                  repeat: importState === "drag" ? Infinity : 0,
-                },
-                rotate: {
-                  duration: 1,
-                  repeat: importState === "importing" ? Infinity : 0,
-                  ease: "linear",
-                },
-              }}
-            >
-              <Download size={24} />
-            </motion.div>
-            <p
-              className={`text-sm font-medium mb-2 ${
-                importState === "drag"
-                  ? "text-gaming-accent-cyan"
-                  : "text-gaming-text-secondary"
-              }`}
-            >
-              {importState === "importing"
-                ? "Importing mods..."
-                : importState === "drag"
-                ? "Drop files here to import"
-                : "Drag & drop mod ZIPs or folders here"}
-            </p>
-            <p className="text-xs text-gaming-text-muted">
-              Supports .zip files and mod folders
-            </p>
-          </div>
+            <div className="text-center">
+              <motion.div
+                className={`mx-auto w-16 h-16 rounded-2xl flex items-center justify-center mb-4 transition-colors ${
+                  importState === "drag"
+                    ? "bg-gaming-accent-cyan/20 text-gaming-accent-cyan"
+                    : "bg-gaming-bg-overlay/50 text-gaming-text-muted"
+                }`}
+                animate={{
+                  scale: importState === "drag" ? [1, 1.1, 1] : 1,
+                  rotate: importState === "importing" ? 360 : 0,
+                }}
+                transition={{
+                  scale: {
+                    duration: 0.5,
+                    repeat: importState === "drag" ? Infinity : 0,
+                  },
+                  rotate: {
+                    duration: 1,
+                    repeat: importState === "importing" ? Infinity : 0,
+                    ease: "linear",
+                  },
+                }}
+              >
+                <Download size={24} />
+              </motion.div>
+              <p
+                className={`text-sm font-medium mb-2 ${
+                  importState === "drag"
+                    ? "text-gaming-accent-cyan"
+                    : "text-gaming-text-secondary"
+                }`}
+              >
+                {importState === "importing"
+                  ? "Importing mods..."
+                  : importState === "drag"
+                  ? "Drop files here to import"
+                  : "Drag & drop mod ZIPs or folders here"}
+              </p>
+              <p className="text-xs text-gaming-text-muted">
+                Supports .zip files and mod folders
+              </p>
+            </div>
           </motion.div>
         )}
 
@@ -406,7 +427,8 @@ const ModsPage: React.FC = () => {
               Select Your Mods Folder
             </h3>
             <p className="text-gaming-text-secondary mb-6 max-w-md mx-auto">
-              To get started, please select your ZZMI mods folder. This is where your mods will be stored and managed.
+              To get started, please select your ZZMI mods folder. This is where
+              your mods will be stored and managed.
             </p>
             <motion.button
               onClick={handleSelectModsFolder}

@@ -1,15 +1,8 @@
 import { app, BrowserWindow, shell, ipcMain, dialog, Menu } from "electron";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import fs from "node:fs";
 import Store from "electron-store";
-import {
-  api as modsApi,
-  paths as modPaths,
-  getSettings,
-  setSettings,
-  clearBackups,
-} from "./mods.js";
+import { api as modsApi } from "./mods.js";
 
 const store = new Store();
 
@@ -52,8 +45,7 @@ function saveWindowState(win) {
  * Creates the main application window.
  */
 function createMainWindow() {
-  const preloadPath = path.resolve(__dirname, "preload.js");
-  console.log("Preload path:", preloadPath);
+  const preloadPath = path.resolve(__dirname, "preload.cjs");
 
   const winState = getWindowState();
 
@@ -67,8 +59,8 @@ function createMainWindow() {
     title: "ZZZ Mod Manager",
     webPreferences: {
       preload: preloadPath,
-      contextIsolation: false,
-      nodeIntegration: true,
+      contextIsolation: true,
+      nodeIntegration: false,
       sandbox: false,
       webSecurity: false,
     },
@@ -77,47 +69,12 @@ function createMainWindow() {
   mainWindow.on("resize", () => saveWindowState(mainWindow));
   mainWindow.on("move", () => saveWindowState(mainWindow));
 
-  mainWindow.webContents.once("did-finish-load", () => {
-    console.log("Page loaded, manually injecting electronAPI");
-    mainWindow.webContents.executeJavaScript(`
-      const { ipcRenderer } = require("electron");
-      
-      window.electronAPI = {
-        getVersion: () => ipcRenderer.invoke("app:getVersion"),
-        selectModsFolder: () => ipcRenderer.invoke("dialog:selectModsFolder"),
-        mods: {
-          list: () => ipcRenderer.invoke("mods:list"),
-          enable: (id) => ipcRenderer.invoke("mods:enable", id),
-          disable: (id) => ipcRenderer.invoke("mods:disable", id),
-          remove: (id) => ipcRenderer.invoke("mods:delete", id),
-          importZip: (zipPath) => ipcRenderer.invoke("mods:importZip", zipPath),
-          importFolder: (folderPath) => ipcRenderer.invoke("mods:importFolder", folderPath),
-          chooseZip: () => ipcRenderer.invoke("mods:chooseZip"),
-          chooseFolder: () => ipcRenderer.invoke("mods:chooseFolder"),
-        },
-        settings: {
-          get: () => ipcRenderer.invoke("settings:get"),
-          set: (partial) => ipcRenderer.invoke("settings:set", partial),
-          chooseGameDir: () => ipcRenderer.invoke("settings:chooseGameDir"),
-          chooseModsDir: () => ipcRenderer.invoke("settings:chooseModsDir"),
-          clearBackups: () => ipcRenderer.invoke("settings:clearBackups"),
-        },
-        recentFolders: {
-          get: () => ipcRenderer.invoke("recentFolders:get"),
-          clear: () => ipcRenderer.invoke("recentFolders:clear"),
-        },
-      };
-      
-      console.log("electronAPI manually injected:", window.electronAPI);
-    `);
-  });
-
   if (isDev) {
     const devServerUrl = "http://localhost:5173/";
     mainWindow.loadURL(devServerUrl);
     mainWindow.webContents.openDevTools({ mode: "detach" });
   } else {
-    const indexHtml = path.join(__dirname, "../../dist/index.html");
+    const indexHtml = path.join(process.cwd(), "dist", "index.html");
     mainWindow.loadFile(indexHtml);
   }
 
@@ -128,14 +85,13 @@ function createMainWindow() {
   });
 
   // --- Drag-and-Drop Support ---
-  mainWindow.webContents.on("will-navigate", (event, url) => {
+  mainWindow.webContents.on("will-navigate", (event) => {
     event.preventDefault();
   });
 
   mainWindow.webContents.on("ipc-message", (event, channel, args) => {
     if (channel === "dragged-files") {
-      console.log("Dragged files:", args[0]);
-      // You can add logic to import mods here
+      // Prevent default drag-drop behavior; logic can be added here if needed
     }
   });
 
@@ -227,12 +183,12 @@ function safeIpcHandle(channel, handler) {
   });
 }
 
-// Replace all ipcMain.handle with safeIpcHandle for robustness
-safeIpcHandle("app:getVersion", () => app.getVersion());
-safeIpcHandle("mods:list", async () => modsApi.listMods());
+// Mods API handlers
+safeIpcHandle("mods:listLibrary", async () => modsApi.listLibrary());
+safeIpcHandle("mods:listActive", async () => modsApi.listActive());
 safeIpcHandle("mods:enable", async (_e, id) => modsApi.setEnabled(id, true));
 safeIpcHandle("mods:disable", async (_e, id) => modsApi.setEnabled(id, false));
-safeIpcHandle("mods:delete", async (_e, id) => modsApi.deleteMod(id));
+safeIpcHandle("mods:remove", async (_e, id) => modsApi.deleteMod(id));
 safeIpcHandle("mods:importZip", async (_e, zipPath) =>
   modsApi.importFromZip(zipPath)
 );
@@ -252,24 +208,22 @@ safeIpcHandle("mods:chooseFolder", async () => {
   if (res.canceled || res.filePaths.length === 0) return null;
   return res.filePaths[0];
 });
-safeIpcHandle("settings:get", async () => getSettings());
-safeIpcHandle("settings:set", async (_e, partial) => setSettings(partial));
-safeIpcHandle("settings:chooseGameDir", async () => {
-  const res = await dialog.showOpenDialog({ properties: ["openDirectory"] });
-  if (res.canceled || res.filePaths.length === 0) return null;
-  const dir = res.filePaths[0];
-  await setSettings({ gameDir: dir });
-  return dir;
-});
+
+// Settings API handlers
+safeIpcHandle("settings:get", async () => modsApi.getSettings());
+safeIpcHandle("settings:set", async (_e, partial) =>
+  modsApi.setSettings(partial)
+);
 safeIpcHandle("settings:chooseModsDir", async () => {
   const res = await dialog.showOpenDialog({ properties: ["openDirectory"] });
   if (res.canceled || res.filePaths.length === 0) return null;
   const dir = res.filePaths[0];
-  await setSettings({ modsDir: dir });
+  await modsApi.setSettings({ modsDir: dir });
   return dir;
 });
-safeIpcHandle("settings:clearBackups", async () => clearBackups());
-safeIpcHandle("dialog:selectModsFolder", async () => {
+
+// Select Mods Folder handler
+safeIpcHandle("selectModsFolder", async () => {
   const result = await dialog.showOpenDialog({
     properties: ["openDirectory"],
     title: "Select Mods Folder",
@@ -280,6 +234,18 @@ safeIpcHandle("dialog:selectModsFolder", async () => {
     return null;
   }
 
+  addRecentFolder(result.filePaths[0]);
+  return result.filePaths[0];
+});
+
+// Fix missing IPC handler for dialog:selectModsFolder
+safeIpcHandle("dialog:selectModsFolder", async () => {
+  const result = await dialog.showOpenDialog({
+    properties: ["openDirectory"],
+    title: "Select Mods Folder",
+    buttonLabel: "Select Folder",
+  });
+  if (result.canceled || result.filePaths.length === 0) return null;
   addRecentFolder(result.filePaths[0]);
   return result.filePaths[0];
 });

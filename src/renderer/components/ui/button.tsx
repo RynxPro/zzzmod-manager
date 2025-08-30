@@ -71,7 +71,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     const Comp = asChild ? Slot : "button";
     return (
       <Comp
-        className={cn(buttonVariants({ variant, size, loading, className }))}
+        className={cn(buttonVariants({ variant, size, loading }), className)}
         ref={ref}
         disabled={loading || props.disabled}
         {...props}
