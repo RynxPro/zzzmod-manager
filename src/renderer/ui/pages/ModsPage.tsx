@@ -49,12 +49,10 @@ const ModsPage: React.FC = () => {
         setNeedsSetup(false);
         // Get all mods in the manager library (zzzmodmanager/mods)
         const libraryMods = await window.electronAPI.mods.listLibrary();
-        // Get all active mods in zzmi/mods (returns array of mod IDs)
-        const activeIds: string[] = await window.electronAPI.mods.listActive();
-        // Mark enabled status based on whether mod is present in the active folder
+        // Mark enabled status using saved state from library
         const modsWithStatus = libraryMods.map((mod: ModItem) => ({
           ...mod,
-          enabled: activeIds.includes(mod.id),
+          enabled: !!mod.enabled, // use saved enabled state
         }));
         setMods(modsWithStatus);
         setError(null);
@@ -667,8 +665,8 @@ const ModsPage: React.FC = () => {
                         onClick={() => handleEnableToggle(mod)}
                         className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
                           mod.enabled
-                            ? "bg-gaming-status-disabled/20 hover:bg-gaming-status-disabled/30 text-gaming-text-primary border border-gaming-status-disabled/30"
-                            : "bg-gaming-status-enabled/20 hover:bg-gaming-status-enabled/30 text-gaming-status-enabled border border-gaming-status-enabled/30 hover:shadow-glow"
+                            ? "bg-green-500 hover:bg-green-600 text-white"
+                            : "bg-red-500 hover:bg-red-600 text-white"
                         }`}
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
@@ -679,7 +677,7 @@ const ModsPage: React.FC = () => {
                         ) : (
                           <>
                             <Power size={14} />
-                            {mod.enabled ? "Disable" : "Enable"}
+                            {mod.enabled ? "On" : "Off"}
                           </>
                         )}
                       </motion.button>
