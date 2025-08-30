@@ -1,8 +1,10 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { FolderOpen, Save, Settings as SettingsIcon } from "lucide-react";
+import { useToast } from "../components/Toast";
 
 const SettingsPage: React.FC = () => {
+  const { success, error } = useToast();
   const [modsDir, setModsDir] = React.useState<string>("");
   const [saving, setSaving] = React.useState<boolean>(false);
 
@@ -16,7 +18,7 @@ const SettingsPage: React.FC = () => {
           setModsDir(s.modsDir || "");
         } catch (err) {
           // Show error if settings cannot be loaded
-          alert("Failed to load settings: " + (err?.message || err));
+          error("Failed to load settings", err?.message || String(err));
         }
       } else {
         setTimeout(loadSettings, 100);
@@ -27,12 +29,12 @@ const SettingsPage: React.FC = () => {
 
   // Select the ZZMI Mods folder
   const chooseModsDir = async () => {
-    if (!window.electronAPI?.selectModsFolder) {
+    if (!window.electronAPI?.settings?.chooseModsDir) {
       alert("Mods folder selection is not available.");
       return;
     }
     try {
-      const dir = await window.electronAPI.selectModsFolder();
+      const dir = await window.electronAPI.settings.chooseModsDir();
       if (dir) {
         setModsDir(dir);
         // Update modsDir in settings immediately
@@ -41,7 +43,7 @@ const SettingsPage: React.FC = () => {
         }
       }
     } catch (err) {
-      alert("Failed to select mods folder: " + (err?.message || err));
+      error("Failed to select mods folder", err?.message || String(err));
     }
   };
 
@@ -51,13 +53,15 @@ const SettingsPage: React.FC = () => {
     try {
       await window.electronAPI.settings.set({ modsDir });
       console.log("Settings saved");
-      alert("Settings saved successfully.");
+      success("Settings saved", "Your settings have been saved successfully.");
     } catch (err) {
-      alert("Failed to save settings: " + (err?.message || err));
+      error("Failed to save settings", err?.message || String(err));
     } finally {
       setSaving(false);
     }
   };
+
+  const canBrowse = Boolean(window.electronAPI?.settings?.chooseModsDir);
 
   return (
     <div className="p-8 space-y-6">
@@ -98,17 +102,15 @@ const SettingsPage: React.FC = () => {
             <motion.button
               onClick={chooseModsDir}
               className={`gaming-button-secondary flex items-center gap-2 px-4 py-3${
-                !window.electronAPI?.selectModsFolder
-                  ? " opacity-60 cursor-not-allowed"
-                  : ""
+                !canBrowse ? " opacity-60 cursor-not-allowed" : ""
               }`}
               whileHover={{
-                scale: window.electronAPI?.selectModsFolder ? 1.02 : 1,
+                scale: canBrowse ? 1.02 : 1,
               }}
               whileTap={{
-                scale: window.electronAPI?.selectModsFolder ? 0.98 : 1,
+                scale: canBrowse ? 0.98 : 1,
               }}
-              disabled={!window.electronAPI?.selectModsFolder}
+              disabled={!canBrowse}
             >
               <FolderOpen size={16} />
               Browse

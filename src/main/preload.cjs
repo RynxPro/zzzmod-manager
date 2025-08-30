@@ -2,12 +2,10 @@ const { contextBridge, ipcRenderer } = require("electron");
 
 contextBridge.exposeInMainWorld("electronAPI", {
   getVersion: () => ipcRenderer.invoke("app:getVersion"),
-  selectModsFolder: () => ipcRenderer.invoke("dialog:selectModsFolder"),
   mods: {
     listLibrary: () => ipcRenderer.invoke("mods:listLibrary"),
     listActive: () => ipcRenderer.invoke("mods:listActive"),
-    enable: (id) => ipcRenderer.invoke("mods:enable", id),
-    disable: (id) => ipcRenderer.invoke("mods:disable", id),
+    toggleMod: (id, turnOn) => ipcRenderer.invoke("mods:toggleMod", id, turnOn),
     remove: (id) => ipcRenderer.invoke("mods:remove", id),
     importZip: (zipPath) => ipcRenderer.invoke("mods:importZip", zipPath),
     importFolder: (folderPath) =>

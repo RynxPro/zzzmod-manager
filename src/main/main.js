@@ -2,7 +2,7 @@ import { app, BrowserWindow, shell, ipcMain, dialog, Menu } from "electron";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import Store from "electron-store";
-import { api as modsApi } from "./mods.js";
+import { api as modsApi, getManagerModsDir } from "./mods.js";
 
 const store = new Store();
 
@@ -62,7 +62,7 @@ function createMainWindow() {
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: false,
-      webSecurity: false,
+      webSecurity: true,
     },
   });
 
@@ -208,6 +208,9 @@ safeIpcHandle("mods:chooseFolder", async () => {
   if (res.canceled || res.filePaths.length === 0) return null;
   return res.filePaths[0];
 });
+safeIpcHandle("mods:toggleMod", async (_e, id, turnOn) => {
+  return modsApi.toggleMod(id, turnOn);
+});
 
 // Settings API handlers
 safeIpcHandle("settings:get", async () => modsApi.getSettings());
@@ -220,34 +223,6 @@ safeIpcHandle("settings:chooseModsDir", async () => {
   const dir = res.filePaths[0];
   await modsApi.setSettings({ modsDir: dir });
   return dir;
-});
-
-// Select Mods Folder handler
-safeIpcHandle("selectModsFolder", async () => {
-  const result = await dialog.showOpenDialog({
-    properties: ["openDirectory"],
-    title: "Select Mods Folder",
-    buttonLabel: "Select Folder",
-  });
-
-  if (result.canceled || result.filePaths.length === 0) {
-    return null;
-  }
-
-  addRecentFolder(result.filePaths[0]);
-  return result.filePaths[0];
-});
-
-// Fix missing IPC handler for dialog:selectModsFolder
-safeIpcHandle("dialog:selectModsFolder", async () => {
-  const result = await dialog.showOpenDialog({
-    properties: ["openDirectory"],
-    title: "Select Mods Folder",
-    buttonLabel: "Select Folder",
-  });
-  if (result.canceled || result.filePaths.length === 0) return null;
-  addRecentFolder(result.filePaths[0]);
-  return result.filePaths[0];
 });
 
 // --- Graceful App Quit ---
@@ -269,6 +244,7 @@ app.on("activate", () => {
 });
 
 app.whenReady().then(() => {
+  getManagerModsDir(); // Ensure manager mods folder exists at startup
   const mainWindow = createMainWindow();
   setupAppMenu(mainWindow);
 });

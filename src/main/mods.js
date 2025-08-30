@@ -5,12 +5,12 @@ async function listActive() {
   if (!fs.existsSync(activeModsDir)) return [];
 
   const dirEntries = await fsp.readdir(activeModsDir, { withFileTypes: true });
-  const modDirs = dirEntries
+  const activeNames = dirEntries
     .filter((entry) => entry.isDirectory())
-    .map((entry) => path.join(activeModsDir, entry.name));
+    .map((entry) => entry.name);
 
   const activeMods = (config.mods || []).filter((mod) =>
-    modDirs.includes(mod.dir)
+    activeNames.includes(path.basename(mod.dir))
   );
 
   return activeMods;
@@ -74,11 +74,13 @@ async function listMods() {
   return config.mods;
 }
 
-function getManagerModsDir() {
-  if (!fs.existsSync(MANAGER_MODS_DIR)) {
-    fs.mkdirSync(MANAGER_MODS_DIR, { recursive: true });
+export function getManagerModsDir() {
+  const dir = MANAGER_MODS_DIR;
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
   }
-  return MANAGER_MODS_DIR;
+  console.log("Manager mods folder:", dir); // debug log for folder location
+  return dir;
 }
 
 function getActiveModsDir(settings) {
@@ -196,11 +198,9 @@ async function computeDirectorySizeBytes(dir) {
   return total;
 }
 
-async function registerMod(modDir) {
-  const config = await readConfig();
-  const manifest = await readManifest(modDir);
+async function buildModObject(modDir, manifest) {
   const fallbackName = path.basename(modDir);
-  const mod = {
+  return {
     id: makeId(modDir),
     name: manifest?.name || fallbackName,
     version: manifest?.version || "1.0.0",
@@ -212,6 +212,12 @@ async function registerMod(modDir) {
     sizeBytes: await computeDirectorySizeBytes(modDir),
     thumbnailPath: await findThumbnailPath(modDir, manifest),
   };
+}
+
+async function registerMod(modDir) {
+  const config = await readConfig();
+  const manifest = await readManifest(modDir);
+  const mod = await buildModObject(modDir, manifest);
   const existingIndex = config.mods.findIndex((m) => m.id === mod.id);
   if (existingIndex >= 0) {
     config.mods[existingIndex] = mod;
@@ -222,33 +228,38 @@ async function registerMod(modDir) {
   return mod;
 }
 
-async function setEnabled(modId, enabled) {
-  const config = await readConfig();
-  const idx = config.mods.findIndex((m) => m.id === modId);
-  if (idx === -1) return false;
-  const mod = config.mods[idx];
-  const activeModsDir = getActiveModsDir(config.settings);
-  if (!fs.existsSync(activeModsDir)) {
-    await fsp.mkdir(activeModsDir, { recursive: true });
-  }
-  const destDir = path.join(activeModsDir, path.basename(mod.dir));
-
-  if (enabled) {
-    // Copy mod folder from manager library to active mods folder
-    if (fs.existsSync(destDir)) {
-      await fsp.rm(destDir, { recursive: true, force: true });
+async function toggleMod(modId, turnOn) {
+  try {
+    const config = await readConfig();
+    const idx = config.mods.findIndex((m) => m.id === modId);
+    if (idx === -1) return { success: false, message: "Mod not found" };
+    const mod = config.mods[idx];
+    const activeModsDir = getActiveModsDir(config.settings);
+    if (!fs.existsSync(activeModsDir)) {
+      await fsp.mkdir(activeModsDir, { recursive: true });
     }
-    await copyDirectory(mod.dir, destDir);
-  } else {
-    // Remove mod folder from active mods folder
-    if (fs.existsSync(destDir)) {
-      await fsp.rm(destDir, { recursive: true, force: true });
-    }
-  }
+    const destDir = path.join(activeModsDir, path.basename(mod.dir));
 
-  mod.enabled = enabled;
-  await writeConfig(config);
-  return true;
+    if (turnOn) {
+      if (fs.existsSync(destDir)) {
+        await fsp.rm(destDir, { recursive: true, force: true });
+      }
+      await copyDirectory(mod.dir, destDir);
+    } else {
+      if (fs.existsSync(destDir)) {
+        await fsp.rm(destDir, { recursive: true, force: true });
+      }
+    }
+
+    mod.enabled = turnOn;
+    config.mods[idx] = mod;
+    await writeConfig(config);
+
+    return { success: true, mod };
+  } catch (err) {
+    console.error("Failed to toggle mod:", err);
+    return { success: false, message: err?.message || "Unknown error" };
+  }
 }
 
 async function deleteMod(modId) {
@@ -312,24 +323,15 @@ async function syncModsFromDirectory(modsDir, config) {
     }
   }
 
-  return [...validMods, ...newMods];
+  const merged = [...validMods, ...newMods];
+  config.mods = merged;
+  await writeConfig(config);
+  return merged;
 }
 
 async function createModFromDirectory(modDir) {
   const manifest = await readManifest(modDir);
-  const fallbackName = path.basename(modDir);
-  return {
-    id: makeId(modDir),
-    name: manifest?.name || fallbackName,
-    version: manifest?.version || "1.0.0",
-    author: manifest?.author || "Unknown",
-    description: manifest?.description || "No description provided.",
-    enabled: false,
-    dir: modDir,
-    dateAdded: Date.now(),
-    sizeBytes: await computeDirectorySizeBytes(modDir),
-    thumbnailPath: await findThumbnailPath(modDir, manifest),
-  };
+  return await buildModObject(modDir, manifest);
 }
 
 // Settings handling
@@ -355,7 +357,7 @@ export const api = {
   listActive, // added
   importFromZip,
   importFromFolder,
-  setEnabled,
+  toggleMod,
   deleteMod,
   getSettings,
   setSettings,

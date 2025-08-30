@@ -1,14 +1,20 @@
 import { motion } from "framer-motion";
 import { CheckCircle, XCircle, Trash2 } from "lucide-react";
-import ModItem from "../ui/pages/ModsPage";
+import { ModItem } from "@/types/mod";
 
 interface ModCardProps {
   mod: ModItem;
   onEnableToggle: (modId: string, enabled: boolean) => void;
   onDelete: (modId: string) => void;
+  isToggling?: boolean;
 }
 
-export function ModCard({ mod, onEnableToggle, onDelete }: ModCardProps) {
+export function ModCard({
+  mod,
+  onEnableToggle,
+  onDelete,
+  isToggling,
+}: ModCardProps) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -40,15 +46,22 @@ export function ModCard({ mod, onEnableToggle, onDelete }: ModCardProps) {
           <div className="flex items-center gap-2">
             <button
               onClick={() => onEnableToggle(mod.id, !mod.enabled)}
-              className={`p-1.5 rounded-lg focus:outline-none ${
+              className={`p-1.5 rounded-lg focus:outline-none relative ${
                 mod.enabled
                   ? "bg-gaming-status-success/20 text-gaming-status-success hover:bg-gaming-status-success/30"
                   : "bg-gaming-bg-overlay/50 text-gaming-text-muted hover:bg-gaming-bg-overlay/70"
               } transition-colors`}
               title={mod.enabled ? "Disable mod" : "Enable mod"}
               aria-label={mod.enabled ? "Disable mod" : "Enable mod"}
+              disabled={isToggling}
             >
-              {mod.enabled ? <CheckCircle size={16} /> : <XCircle size={16} />}
+              {isToggling ? (
+                <div className="w-4 h-4 border-2 border-gaming-text-muted border-t-transparent rounded-full animate-spin mx-auto" />
+              ) : mod.enabled ? (
+                <CheckCircle size={16} />
+              ) : (
+                <XCircle size={16} />
+              )}
             </button>
             <button
               onClick={() => onDelete(mod.id)}

@@ -19,7 +19,7 @@ const AboutPage: React.FC = () => {
         >
           <Gamepad2 className="w-full h-full text-gaming-bg-primary" />
         </motion.div>
-        
+
         <h1 className="text-4xl font-bold text-gaming-text-primary mb-3">
           ZZZ Mod Manager
         </h1>
@@ -41,7 +41,9 @@ const AboutPage: React.FC = () => {
             <div className="w-10 h-10 rounded-xl bg-gaming-accent-cyan/20 flex items-center justify-center">
               <Zap size={20} className="text-gaming-accent-cyan" />
             </div>
-            <h3 className="text-xl font-semibold text-gaming-text-primary">Features</h3>
+            <h3 className="text-xl font-semibold text-gaming-text-primary">
+              Features
+            </h3>
           </div>
           <ul className="space-y-2 text-gaming-text-secondary">
             <li>• Drag & drop mod installation</li>
@@ -58,7 +60,9 @@ const AboutPage: React.FC = () => {
             <div className="w-10 h-10 rounded-xl bg-gaming-accent-violet/20 flex items-center justify-center">
               <Code size={20} className="text-gaming-accent-violet" />
             </div>
-            <h3 className="text-xl font-semibold text-gaming-text-primary">Built With</h3>
+            <h3 className="text-xl font-semibold text-gaming-text-primary">
+              Built With
+            </h3>
           </div>
           <ul className="space-y-2 text-gaming-text-secondary">
             <li>• Electron for cross-platform support</li>
@@ -79,7 +83,9 @@ const AboutPage: React.FC = () => {
       >
         <div className="flex items-center justify-center gap-2 mb-2">
           <Heart size={16} className="text-gaming-accent-magenta" />
-          <span className="text-gaming-text-secondary">Made with passion for the ZZZ community</span>
+          <span className="text-gaming-text-secondary">
+            Made with passion for the ZZZ community
+          </span>
         </div>
         <p className="text-gaming-text-muted font-mono text-sm">
           Version 0.1.0 • Gaming Launcher Edition
