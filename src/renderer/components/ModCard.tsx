@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { CheckCircle, XCircle, Trash2 } from "lucide-react";
-import { ModItem } from "@/types/mod";
+import { ModItem } from "../ui/types/mods";
 
 interface ModCardProps {
   mod: ModItem;
@@ -19,48 +19,71 @@ export function ModCard({
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      whileHover={{ y: -5 }}
+      whileHover={{
+        y: -5,
+        scale: 1.02,
+        boxShadow: "0 10px 25px rgba(0,0,0,0.1)",
+      }}
       className="glass-panel rounded-2xl overflow-hidden border border-gaming-border/30 hover:border-gaming-border/70 transition-all duration-300"
     >
       {/* Thumbnail */}
-      {mod.thumbnailPath && (
+      {mod.thumbnailPath ? (
         <img
           src={`file://${mod.thumbnailPath}`}
           alt={`${mod.name} thumbnail`}
           className="w-full h-32 object-cover"
           loading="lazy"
         />
+      ) : (
+        <div className="w-full h-32 flex items-center justify-center bg-gaming-bg-overlay/30 text-gaming-text-muted">
+          No Thumbnail
+        </div>
       )}
+
       <div className="p-4">
         <div className="flex justify-between items-start mb-3">
           <div>
             <h3 className="text-gaming-text-primary font-medium text-sm truncate">
               {mod.name}
             </h3>
-            {mod.version && (
-              <span className="text-xs text-gaming-text-muted">
-                v{mod.version}
-              </span>
-            )}
+            <div className="flex gap-2 mt-1 flex-wrap">
+              {mod.version && (
+                <span className="bg-gray-700 text-white px-2 py-0.5 rounded text-xs">
+                  v{mod.version}
+                </span>
+              )}
+              {mod.author && (
+                <span className="bg-gray-700 text-white px-2 py-0.5 rounded text-xs">
+                  By {mod.author}
+                </span>
+              )}
+              {typeof mod.sizeBytes === "number" && (
+                <span className="bg-gray-700 text-white px-2 py-0.5 rounded text-xs">
+                  {formatFileSize(mod.sizeBytes)}
+                </span>
+              )}
+            </div>
           </div>
+
           <div className="flex items-center gap-2">
             <button
               onClick={() => onEnableToggle(mod.id, !mod.enabled)}
               className={`p-1.5 rounded-lg focus:outline-none relative ${
                 mod.enabled
-                  ? "bg-gaming-status-success/20 text-gaming-status-success hover:bg-gaming-status-success/30"
-                  : "bg-gaming-bg-overlay/50 text-gaming-text-muted hover:bg-gaming-bg-overlay/70"
+                  ? "bg-green-500 hover:bg-green-600 text-white"
+                  : "bg-red-500 hover:bg-red-600 text-white"
               } transition-colors`}
-              title={mod.enabled ? "Disable mod" : "Enable mod"}
-              aria-label={mod.enabled ? "Disable mod" : "Enable mod"}
+              title={mod.enabled ? "On" : "Off"}
+              aria-label={mod.enabled ? "On" : "Off"}
+              aria-pressed={mod.enabled}
               disabled={isToggling}
             >
               {isToggling ? (
-                <div className="w-4 h-4 border-2 border-gaming-text-muted border-t-transparent rounded-full animate-spin mx-auto" />
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto" />
               ) : mod.enabled ? (
-                <CheckCircle size={16} />
+                "On"
               ) : (
-                <XCircle size={16} />
+                "Off"
               )}
             </button>
             <button
@@ -75,17 +98,10 @@ export function ModCard({
         </div>
 
         {mod.description && (
-          <p className="text-xs text-gaming-text-secondary line-clamp-2 mb-3">
+          <p className="text-xs text-gaming-text-secondary mb-3 hover:line-clamp-none line-clamp-2 transition-all">
             {mod.description}
           </p>
         )}
-
-        <div className="flex items-center justify-between text-xs text-gaming-text-muted">
-          {mod.author && <span className="truncate">By {mod.author}</span>}
-          {typeof mod.sizeBytes === "number" && (
-            <span>{formatFileSize(mod.sizeBytes)}</span>
-          )}
-        </div>
       </div>
     </motion.div>
   );

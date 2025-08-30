@@ -17,8 +17,9 @@ const SettingsPage: React.FC = () => {
           const s = await window.electronAPI.settings.get();
           setModsDir(s.modsDir || "");
         } catch (err) {
+          const errorMessage = err instanceof Error ? err.message : String(err);
           // Show error if settings cannot be loaded
-          error("Failed to load settings", err?.message || String(err));
+          error("Failed to load settings", errorMessage);
         }
       } else {
         setTimeout(loadSettings, 100);
@@ -43,7 +44,8 @@ const SettingsPage: React.FC = () => {
         }
       }
     } catch (err) {
-      error("Failed to select mods folder", err?.message || String(err));
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      error("Failed to select mods folder", errorMessage);
     }
   };
 
@@ -55,7 +57,8 @@ const SettingsPage: React.FC = () => {
       console.log("Settings saved");
       success("Settings saved", "Your settings have been saved successfully.");
     } catch (err) {
-      error("Failed to save settings", err?.message || String(err));
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      error("Failed to save settings", errorMessage);
     } finally {
       setSaving(false);
     }

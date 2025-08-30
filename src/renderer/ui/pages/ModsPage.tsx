@@ -1,5 +1,5 @@
 import React from "react";
-import { ModItem } from "@/types/mod";
+import { ModItem } from "../types/mods";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Upload,
