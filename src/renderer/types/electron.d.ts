@@ -17,12 +17,12 @@ declare global {
   }
 
   interface ModsAPI {
-    list: () => Promise<ModItem[]>;
-    enable: (id: string) => Promise<boolean>;
-    disable: (id: string) => Promise<boolean>;
+    listLibrary: () => Promise<ModItem[]>;
+    listActive: () => Promise<ModItem[]>;
+    toggleMod: (id: string, turnOn: boolean) => Promise<boolean>;
     remove: (id: string) => Promise<boolean>;
-    importZip: (zipPath: string) => Promise<ModItem>;
-    importFolder: (folderPath: string) => Promise<ModItem>;
+    importZip: (zipPath: string, character?: string | null) => Promise<ModItem>;
+    importFolder: (folderPath: string, character?: string | null) => Promise<ModItem>;
     chooseZip: () => Promise<string | null>;
     chooseFolder: () => Promise<string | null>;
   }

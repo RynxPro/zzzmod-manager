@@ -76,8 +76,8 @@ export const ModsPage: FC<ModsPageProps> = ({ initialMods = [] }) => {
         setError(null);
       } else {
         setNeedsSetup(false);
-        const libraryMods = await window.electronAPI.mods.list();
-        setMods(libraryMods.map((mod: ModItem) => ({
+        const modsList = await window.electronAPI.mods.listLibrary();
+        setMods(modsList.map((mod: ModItem) => ({
           ...mod,
           enabled: !!mod.enabled,
         })));
