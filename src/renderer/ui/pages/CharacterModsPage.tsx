@@ -44,8 +44,13 @@ const CharacterModsPage: React.FC = () => {
   }, [charName]);
 
   const filteredMods = useMemo(() => {
-    if (!charName) return [];
-    return mods.filter((mod) => mod.character?.toLowerCase() === charName.toLowerCase());
+    if (!charName || !Array.isArray(mods)) return [];
+    return mods.filter((mod) => 
+      mod && 
+      typeof mod === 'object' && 
+      mod.character && 
+      mod.character.toLowerCase() === charName.toLowerCase()
+    );
   }, [mods, charName]);
 
   if (!charName) {
