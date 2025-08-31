@@ -7,18 +7,19 @@ import CharacterSelectDialog from "../../components/CharacterSelectDialog";
 
 interface ModsPageProps {
   initialMods?: ModItem[];
+  initialCharacter?: string | null;
 }
 
 type ImportState = "idle" | "drag" | "importing";
 
-export const ModsPage: FC<ModsPageProps> = ({ initialMods = [] }) => {
+export const ModsPage: FC<ModsPageProps> = ({ initialMods = [], initialCharacter = null }) => {
   // State
   const [mods, setMods] = useState<ModItem[]>(initialMods);
   const [importState, setImportState] = useState<ImportState>("idle");
   const [query, setQuery] = useState<string>("");
   const [sortBy, setSortBy] = useState<"name" | "date" | "size">("name");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(!initialMods?.length);
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [modsDir, setModsDir] = useState<string>("");
@@ -30,7 +31,18 @@ export const ModsPage: FC<ModsPageProps> = ({ initialMods = [] }) => {
     type: 'zip' | 'folder' | 'file';
     path: string;
   } | null>(null);
-  const [selectedCharacter, setSelectedCharacter] = useState<string | null>(null);
+  const [selectedCharacter, setSelectedCharacter] = useState<string | null>(initialCharacter || null);
+
+  // Update mods when initialMods or initialCharacter changes
+  useEffect(() => {
+    if (initialMods) {
+      setMods(initialMods);
+      if (initialCharacter) {
+        setSelectedCharacter(initialCharacter);
+      }
+      setLoading(false);
+    }
+  }, [initialMods, initialCharacter]);
 
   // Memoized values
   const availableCharacters = useMemo(() => {
@@ -92,10 +104,49 @@ export const ModsPage: FC<ModsPageProps> = ({ initialMods = [] }) => {
     }
   }, []);
 
+  const loadMods = useCallback(async () => {
+    try {
+      setLoading(true);
+      const settings = await window.electronAPI.settings.get();
+      setModsDir(settings.modsDir || "");
+
+      if (!settings.modsDir?.trim()) {
+        setNeedsSetup(true);
+        setMods(initialMods || []);
+        setError(null);
+      } else {
+        setNeedsSetup(false);
+        const modsList = await window.electronAPI.mods.listLibrary();
+        const processedMods = modsList.map((mod: ModItem) => ({
+          ...mod,
+          enabled: !!mod.enabled,
+        }));
+        setMods(initialMods?.length ? initialMods : processedMods);
+        setError(null);
+      }
+    } catch (e: any) {
+      setError(e?.message || "Failed to load mods");
+      setNeedsSetup(false);
+      // If there's an error but we have initialMods, still show them
+      if (initialMods?.length) {
+        setMods(initialMods);
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, [initialMods]);
+
+  // Load mods on initial mount if no initialMods provided
+  useEffect(() => {
+    if (!initialMods?.length) {
+      loadMods();
+    }
+  }, []);
+
   // ... (other handlers remain the same)
 
   // Render
-  if (loading) {
+  if (loading && !mods.length) {
     return (
       <div className="min-h-screen bg-gaming-bg text-gaming-text flex items-center justify-center">
         <div className="text-center">
