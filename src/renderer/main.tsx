@@ -6,13 +6,18 @@ import RootLayout from "./ui/RootLayout";
 import ModsPage from "./ui/pages/ModsPage";
 import SettingsPage from "./ui/pages/SettingsPage";
 import AboutPage from "./ui/pages/AboutPage";
+import CharactersPage from "./ui/pages/CharactersPage";
+import CharacterModsPage from "./ui/pages/CharacterModsPage";
 
 const router = createBrowserRouter([
   {
     path: "/",
     element: <RootLayout />,
     children: [
-      { index: true, element: <ModsPage /> },
+      { index: true, element: <CharactersPage /> },
+      { path: "characters", element: <CharactersPage /> },
+      { path: "characters/:charName", element: <CharacterModsPage /> },
+      { path: "mods", element: <ModsPage /> },
       { path: "settings", element: <SettingsPage /> },
       { path: "about", element: <AboutPage /> },
     ],

@@ -31,7 +31,7 @@ const CharacterCard: React.FC<CharacterCardProps> = ({
       <img
         src={imageUrl}
         alt={name}
-        className="w-24 h-24 rounded-full mb-3 object-cover"
+        className="w-24 h-24 rounded-full mb-3 object-cover scale-y-[-1]"
       />
       <h3 className="text-lg font-bold text-white mb-1">{name}</h3>
       <p className="text-sm text-gray-400 mb-2">

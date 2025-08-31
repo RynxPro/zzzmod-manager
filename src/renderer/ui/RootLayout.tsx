@@ -1,12 +1,8 @@
 import React from "react";
-import { NavLink, useLocation, Routes, Route } from "react-router-dom";
+import { NavLink, useLocation, Outlet } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Puzzle, Settings, Info, Gamepad2 } from "lucide-react";
 import TopBar from "./components/TopBar";
-
-import CharactersPage from "./pages/CharactersPage";
-import CharacterModsPage from "./pages/CharacterModsPage";
-import ModsPage from "./pages/ModsPage";
 
 const NavItem: React.FC<{
   to: string;
@@ -170,15 +166,17 @@ const RootLayout: React.FC = () => {
         <TopBar />
 
         <main className="flex-1 overflow-auto relative z-10">
-          <Routes>
-            <Route path="/characters" element={<CharactersPage />} />
-            <Route
-              path="/characters/:charName"
-              element={<CharacterModsPage />}
-            />
-            <Route path="/mods" element={<ModsPage />} />
-            <Route path="/" element={<CharactersPage />} />
-          </Routes>
+          <AnimatePresence initial={false} mode="sync">
+            <motion.div
+              key={location.pathname}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.18, ease: "easeOut" }}
+              className="h-full"
+            >
+              <Outlet />
+            </motion.div>
+          </AnimatePresence>
         </main>
       </section>
     </div>

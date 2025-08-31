@@ -1,7 +1,7 @@
 import React from "react";
 import CharacterCard from "./CharacterCard";
 import { characters } from "../data/characters";
-import { ModItem } from "../types/mods";
+import { ModItem } from "../ui/types/mods";
 
 interface CharacterCardsGridProps {
   mods: ModItem[];
@@ -30,7 +30,7 @@ const CharacterCardsGrid: React.FC<CharacterCardsGridProps> = ({
         <CharacterCard
           key={char.name}
           name={char.name}
-          imageUrl={char.icon}
+          imageUrl={char.imageUrl}
           totalMods={char.total}
           activeMods={char.active}
           onClick={() => onSelect?.(char.name)}
