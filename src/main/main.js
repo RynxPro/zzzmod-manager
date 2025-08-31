@@ -185,6 +185,9 @@ function safeIpcHandle(channel, handler) {
 
 // Mods API handlers
 safeIpcHandle("mods:listLibrary", async () => modsApi.listLibrary());
+safeIpcHandle("mods:listModsByCharacter", async (_e, character) => {
+  return modsApi.listModsByCharacter(character);
+});
 safeIpcHandle("mods:listActive", async () => modsApi.listActive());
 safeIpcHandle("mods:enable", async (_e, id) => modsApi.setEnabled(id, true));
 safeIpcHandle("mods:disable", async (_e, id) => modsApi.setEnabled(id, false));

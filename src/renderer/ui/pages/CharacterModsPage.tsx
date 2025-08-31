@@ -12,14 +12,14 @@ const CharacterModsPage: React.FC = () => {
 
   useEffect(() => {
     let isMounted = true;
-    
     async function fetchMods() {
       try {
         if (!charName) {
           throw new Error("Character name is required");
         }
-        
-        const modsList = await window.electronAPI.mods.listLibrary();
+        const modsList = await window.electronAPI.mods.listModsByCharacter(
+          charName
+        );
         if (isMounted) {
           setMods(modsList);
           setError(null);
@@ -35,23 +35,53 @@ const CharacterModsPage: React.FC = () => {
         }
       }
     }
-    
     fetchMods();
-    
     return () => {
       isMounted = false;
     };
   }, [charName]);
 
-  const filteredMods = useMemo(() => {
-    if (!charName || !Array.isArray(mods)) return [];
-    return mods.filter((mod) => 
-      mod && 
-      typeof mod === 'object' && 
-      mod.character && 
-      mod.character.toLowerCase() === charName.toLowerCase()
-    );
-  }, [mods, charName]);
+  // Upload zip handler
+  const handleUploadZip = async () => {
+    if (!charName) return;
+    const filePath = await window.electronAPI.mods.chooseZip();
+    if (filePath) {
+      await window.electronAPI.mods.importZip(filePath, charName);
+      setIsLoading(true);
+      try {
+        const modsList = await window.electronAPI.mods.listModsByCharacter(
+          charName
+        );
+        setMods(modsList);
+        setError(null);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to reload mods");
+      } finally {
+        setIsLoading(false);
+      }
+    }
+  };
+
+  // Upload folder handler
+  const handleUploadFolder = async () => {
+    if (!charName) return;
+    const folderPath = await window.electronAPI.mods.chooseFolder();
+    if (folderPath) {
+      await window.electronAPI.mods.importFolder(folderPath, charName);
+      setIsLoading(true);
+      try {
+        const modsList = await window.electronAPI.mods.listModsByCharacter(
+          charName
+        );
+        setMods(modsList);
+        setError(null);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to reload mods");
+      } finally {
+        setIsLoading(false);
+      }
+    }
+  };
 
   if (!charName) {
     return (
@@ -106,16 +136,31 @@ const CharacterModsPage: React.FC = () => {
       >
         ← Back to Characters
       </button>
-      <h2 className="text-2xl font-bold mb-4 text-gaming-accent-cyan">{charName}'s Mods</h2>
-      {filteredMods.length > 0 ? (
-        <ModsPage 
-          initialMods={filteredMods}
-          initialCharacter={charName}
-        />
+      <h2 className="text-2xl font-bold mb-4 text-gaming-accent-cyan">
+        {charName}'s Mods
+      </h2>
+      <div className="flex flex-row gap-3 mb-4">
+        <button
+          onClick={handleUploadZip}
+          className="px-3 py-2 rounded-xl bg-gaming-accent-cyan text-white hover:bg-opacity-80 transition-all duration-200"
+        >
+          Upload Zip
+        </button>
+        <button
+          onClick={handleUploadFolder}
+          className="px-3 py-2 rounded-xl bg-gaming-accent-pink text-white hover:bg-opacity-80 transition-all duration-200"
+        >
+          Upload Folder
+        </button>
+      </div>
+      {mods.length > 0 ? (
+        <ModsPage mods={mods} initialCharacter={charName} />
       ) : (
         <div className="text-gray-400 p-6 rounded-lg bg-gray-800 bg-opacity-50 border border-gray-700">
           <p>No mods found for {charName}.</p>
-          <p className="text-sm mt-2 text-gray-500">Try importing mods for this character.</p>
+          <p className="text-sm mt-2 text-gray-500">
+            Try importing mods for this character.
+          </p>
         </div>
       )}
     </div>

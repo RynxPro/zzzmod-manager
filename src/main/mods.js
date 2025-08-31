@@ -74,6 +74,11 @@ async function listMods() {
   return config.mods;
 }
 
+async function listModsByCharacter(character) {
+  const config = await readConfig();
+  return (config.mods || []).filter((m) => (m.character || null) === character);
+}
+
 export function getManagerModsDir() {
   const dir = MANAGER_MODS_DIR;
   if (!fs.existsSync(dir)) {
@@ -219,19 +224,19 @@ async function registerMod(modDir, character = null) {
   if (!manifest) {
     throw new Error(`No manifest.json found in ${modDir}`);
   }
-  
+
   const mod = await buildModObject(modDir, manifest);
   mod.enabled = false;
   mod.activePath = null;
-  
+
   // Set character if provided
   if (character) {
     mod.character = character;
   }
-  
+
   const config = await readConfig();
   const existingIndex = config.mods.findIndex((m) => m.id === mod.id);
-  
+
   if (existingIndex >= 0) {
     // Update existing mod
     config.mods[existingIndex] = {
@@ -240,7 +245,10 @@ async function registerMod(modDir, character = null) {
       // Preserve enabled state, activePath, and character if not being updated
       enabled: config.mods[existingIndex].enabled,
       activePath: config.mods[existingIndex].activePath,
-      character: character !== null ? character : (config.mods[existingIndex].character || null)
+      character:
+        character !== null
+          ? character
+          : config.mods[existingIndex].character || null,
     };
     mod.enabled = config.mods[existingIndex].enabled;
     mod.activePath = config.mods[existingIndex].activePath;
@@ -249,7 +257,7 @@ async function registerMod(modDir, character = null) {
     // Add new mod
     config.mods.push(mod);
   }
-  
+
   await writeConfig(config);
   return mod;
 }
@@ -384,6 +392,7 @@ export const api = {
   listMods: listModsEnriched,
   listLibrary,
   listActive, // added
+  listModsByCharacter,
   importFromZip,
   importFromFolder,
   toggleMod,
