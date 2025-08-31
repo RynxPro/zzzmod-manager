@@ -13,9 +13,9 @@ export interface ModItem {
   hasConflict?: boolean;
 }
 
-export type ImportState = 'idle' | 'importing' | 'success' | 'error';
-export type SortField = 'name' | 'date' | 'size';
-export type SortDirection = 'asc' | 'desc';
+export type ImportState = "idle" | "importing" | "success" | "error";
+export type SortField = "name" | "date" | "size";
+export type SortDirection = "asc" | "desc";
 
 export interface ModsState {
   mods: ModItem[];

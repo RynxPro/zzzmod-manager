@@ -29,11 +29,12 @@ const CharacterCardsGrid: React.FC<CharacterCardsGridProps> = ({
 
   const filteredCharacters = useMemo(() => {
     if (!searchQuery.trim()) return charactersWithStats;
-    
+
     const query = searchQuery.toLowerCase();
-    return charactersWithStats.filter(char => 
-      char.name.toLowerCase().includes(query) ||
-      char.id.toLowerCase().includes(query)
+    return charactersWithStats.filter(
+      (char) =>
+        char.name.toLowerCase().includes(query) ||
+        char.id.toLowerCase().includes(query)
     );
   }, [charactersWithStats, searchQuery]);
 
@@ -68,7 +69,9 @@ const CharacterCardsGrid: React.FC<CharacterCardsGridProps> = ({
         </div>
       ) : (
         <div className="text-center py-8">
-          <p className="text-gray-400">No characters found matching "{searchQuery}"</p>
+          <p className="text-gray-400">
+            No characters found matching "{searchQuery}"
+          </p>
         </div>
       )}
     </div>
