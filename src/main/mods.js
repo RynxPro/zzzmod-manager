@@ -89,7 +89,7 @@ function getActiveModsDir(settings) {
     : ACTIVE_MODS_DIR;
 }
 
-async function importFromZip(zipPath) {
+async function importFromZip(zipPath, character = null) {
   ensureDirs();
   const cfg = await readConfig();
   const modsDir = getManagerModsDir();
@@ -99,10 +99,10 @@ async function importFromZip(zipPath) {
   const uniqueDir = await uniqueDirectory(targetDir);
   const zip = new AdmZip(zipPath);
   zip.extractAllTo(uniqueDir, true);
-  return await registerMod(uniqueDir);
+  return await registerMod(uniqueDir, character);
 }
 
-async function importFromFolder(folderPath) {
+async function importFromFolder(folderPath, character = null) {
   ensureDirs();
   const cfg = await readConfig();
   const modsDir = getManagerModsDir();
@@ -111,7 +111,7 @@ async function importFromFolder(folderPath) {
   const targetDir = path.join(modsDir, baseName);
   const uniqueDir = await uniqueDirectory(targetDir);
   await copyDirectory(folderPath, uniqueDir);
-  return await registerMod(uniqueDir);
+  return await registerMod(uniqueDir, character);
 }
 
 async function uniqueDirectory(targetDir) {
@@ -214,18 +214,42 @@ async function buildModObject(modDir, manifest) {
   };
 }
 
-async function registerMod(modDir) {
-  const config = await readConfig();
+async function registerMod(modDir, character = null) {
   const manifest = await readManifest(modDir);
+  if (!manifest) {
+    throw new Error(`No manifest.json found in ${modDir}`);
+  }
+  
   const mod = await buildModObject(modDir, manifest);
   mod.enabled = false;
   mod.activePath = null;
+  
+  // Set character if provided
+  if (character) {
+    mod.character = character;
+  }
+  
+  const config = await readConfig();
   const existingIndex = config.mods.findIndex((m) => m.id === mod.id);
+  
   if (existingIndex >= 0) {
-    config.mods[existingIndex] = mod;
+    // Update existing mod
+    config.mods[existingIndex] = {
+      ...config.mods[existingIndex],
+      ...mod,
+      // Preserve enabled state, activePath, and character if not being updated
+      enabled: config.mods[existingIndex].enabled,
+      activePath: config.mods[existingIndex].activePath,
+      character: character !== null ? character : (config.mods[existingIndex].character || null)
+    };
+    mod.enabled = config.mods[existingIndex].enabled;
+    mod.activePath = config.mods[existingIndex].activePath;
+    mod.character = config.mods[existingIndex].character;
   } else {
+    // Add new mod
     config.mods.push(mod);
   }
+  
   await writeConfig(config);
   return mod;
 }

@@ -6,6 +6,7 @@ export interface ModItem {
   description: string;
   enabled: boolean;
   dir: string;
+  character?: string;
   dateAdded?: number;
   sizeBytes?: number;
   thumbnailPath?: string | null;

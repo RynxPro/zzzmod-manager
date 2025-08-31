@@ -7,9 +7,9 @@ contextBridge.exposeInMainWorld("electronAPI", {
     listActive: () => ipcRenderer.invoke("mods:listActive"),
     toggleMod: (id, turnOn) => ipcRenderer.invoke("mods:toggleMod", id, turnOn),
     remove: (id) => ipcRenderer.invoke("mods:remove", id),
-    importZip: (zipPath) => ipcRenderer.invoke("mods:importZip", zipPath),
-    importFolder: (folderPath) =>
-      ipcRenderer.invoke("mods:importFolder", folderPath),
+    importZip: (zipPath, character = null) => ipcRenderer.invoke("mods:importZip", zipPath, character),
+    importFolder: (folderPath, character = null) =>
+      ipcRenderer.invoke("mods:importFolder", folderPath, character),
     chooseZip: () => ipcRenderer.invoke("mods:chooseZip"),
     chooseFolder: () => ipcRenderer.invoke("mods:chooseFolder"),
   },

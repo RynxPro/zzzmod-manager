@@ -189,12 +189,15 @@ safeIpcHandle("mods:listActive", async () => modsApi.listActive());
 safeIpcHandle("mods:enable", async (_e, id) => modsApi.setEnabled(id, true));
 safeIpcHandle("mods:disable", async (_e, id) => modsApi.setEnabled(id, false));
 safeIpcHandle("mods:remove", async (_e, id) => modsApi.deleteMod(id));
-safeIpcHandle("mods:importZip", async (_e, zipPath) =>
-  modsApi.importFromZip(zipPath)
-);
-safeIpcHandle("mods:importFolder", async (_e, folderPath) =>
-  modsApi.importFromFolder(folderPath)
-);
+
+// Import handlers with character support
+safeIpcHandle("mods:importZip", async (_e, filePath, character = null) => {
+  return modsApi.importFromZip(filePath, character);
+});
+
+safeIpcHandle("mods:importFolder", async (_e, folderPath, character = null) => {
+  return modsApi.importFromFolder(folderPath, character);
+});
 safeIpcHandle("mods:chooseZip", async () => {
   const res = await dialog.showOpenDialog({
     properties: ["openFile"],
