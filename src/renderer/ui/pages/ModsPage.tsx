@@ -43,18 +43,15 @@ export const ModsPage: FC<ModsPageProps> = ({ initialCharacter = null }) => {
     initialCharacter || null
   );
 
-  // Update selectedCharacter when initialCharacter changes
-  useEffect(() => {
-    if (initialCharacter) {
-      setSelectedCharacter(initialCharacter);
-    }
-  }, [initialCharacter]);
-
   // Memoized values
   const availableCharacters = useMemo(() => {
     if (!Array.isArray(mods)) return [];
     const chars = new Set<string>();
-    mods.forEach((mod) => mod?.character && chars.add(mod.character));
+    mods.forEach((mod) => {
+      if (mod?.character) {
+        chars.add(mod.character);
+      }
+    });
     return Array.from(chars).sort();
   }, [mods]);
 
@@ -66,34 +63,19 @@ export const ModsPage: FC<ModsPageProps> = ({ initialCharacter = null }) => {
       // Skip invalid mod objects
       if (!mod || typeof mod !== "object") return false;
 
-      // Normalize character names for comparison
-      const modCharacter = mod.character?.toLowerCase() || 'global';
-      const selectedChar = selectedCharacter?.toLowerCase() || null;
-
       // Filter by selected character if any
-      if (selectedChar) {
-        // If mod has no character specified, include it for all characters
-        // Otherwise match the exact character
-        if (modCharacter !== 'global' && modCharacter !== selectedChar) {
-          return false;
-        }
-      } else {
-        // If no character is selected, only show global mods
-        if (modCharacter !== 'global') {
-          return false;
-        }
-      }
+      if (selectedCharacter && mod.character !== selectedCharacter)
+        return false;
 
       // If no search query, include all matching the character filter
       if (!q) return true;
 
-      // Search in mod properties (case-insensitive)
+      // Search in mod properties
       return (
         (mod.name && mod.name.toLowerCase().includes(q)) ||
         (mod.description && mod.description.toLowerCase().includes(q)) ||
         (mod.author && mod.author.toLowerCase().includes(q)) ||
-        (mod.version && mod.version.toLowerCase().includes(q)) ||
-        (modCharacter && modCharacter.includes(q)) // Also search in character names
+        (mod.version && mod.version.toLowerCase().includes(q))
       );
     });
 
@@ -125,6 +107,25 @@ export const ModsPage: FC<ModsPageProps> = ({ initialCharacter = null }) => {
     });
   }, [mods, query, sortBy, sortDir, selectedCharacter]);
 
+  // Get all unique characters from the filtered mods
+  const filteredCharacters = useMemo(() => {
+    if (!Array.isArray(filteredAndSortedMods)) return [];
+    const chars = new Set<string>();
+    filteredAndSortedMods.forEach((mod) => {
+      if (mod?.character) {
+        chars.add(mod.character);
+      }
+    });
+    return Array.from(chars).sort();
+  }, [filteredAndSortedMods]);
+
+  // Reset selected character if it's no longer in available characters
+  useEffect(() => {
+    if (selectedCharacter && !availableCharacters.includes(selectedCharacter) && availableCharacters.length > 0) {
+      setSelectedCharacter(availableCharacters[0]);
+    }
+  }, [availableCharacters, selectedCharacter]);
+
   const loadMods = useCallback(async () => {
     try {
       setLoading(true);
@@ -140,26 +141,11 @@ export const ModsPage: FC<ModsPageProps> = ({ initialCharacter = null }) => {
       
       setNeedsSetup(false);
       const modsList = await window.electronAPI.mods.listLibrary();
+      const processedMods = modsList.map((mod: ModItem) => ({
+        ...mod,
+        enabled: !!mod.enabled,
+      }));
       
-      // Process mods and ensure character property is properly set
-      const processedMods = modsList.map((mod: ModItem) => {
-        // If mod has no character but has a dir that includes a character name, extract it
-        let character = mod.character;
-        if (!character && mod.dir) {
-          const characterMatch = mod.dir.match(/([^/\\]+)[/\\]?$/);
-          if (characterMatch) {
-            character = characterMatch[1];
-          }
-        }
-        
-        return {
-          ...mod,
-          enabled: !!mod.enabled,
-          character: character || 'global', // Default to 'global' if no character specified
-        };
-      });
-      
-      console.log('Loaded mods:', processedMods);
       setMods(processedMods);
       setError(null);
     } catch (err) {
@@ -446,7 +432,7 @@ export const ModsPage: FC<ModsPageProps> = ({ initialCharacter = null }) => {
             All Characters
           </button>
 
-          {availableCharacters.map((char) => (
+          {filteredCharacters.map((char) => (
             <button
               key={char}
               onClick={() => setSelectedCharacter(char)}
@@ -459,6 +445,22 @@ export const ModsPage: FC<ModsPageProps> = ({ initialCharacter = null }) => {
               {char}
             </button>
           ))}
+          {/* Show available characters that don't have mods in current search */}
+          {availableCharacters
+            .filter(char => !filteredCharacters.includes(char))
+            .map((char) => (
+              <button
+                key={char}
+                onClick={() => {
+                  setSelectedCharacter(char);
+                  setQuery(''); // Clear search when selecting a character with no mods in current search
+                }}
+                className="px-4 py-2 rounded-lg bg-gaming-card/50 text-gaming-text-secondary hover:bg-gaming-card-hover/50 transition-colors opacity-70"
+                title="No mods for this character in current search"
+              >
+                {char}
+              </button>
+            ))}
         </div>
 
         {/* Mods Grid */}
