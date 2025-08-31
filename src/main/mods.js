@@ -75,8 +75,29 @@ async function listMods() {
 }
 
 async function listModsByCharacter(character) {
-  const config = await readConfig();
-  return (config.mods || []).filter((m) => (m.character || null) === character);
+  const characterDir = path.join(MANAGER_MODS_DIR, character);
+  if (!fs.existsSync(characterDir)) {
+    return [];
+  }
+
+  const entries = await fsp.readdir(characterDir, { withFileTypes: true });
+  const mods = [];
+
+  for (const entry of entries) {
+    if (entry.isDirectory()) {
+      const modDir = path.join(characterDir, entry.name);
+      try {
+        const manifest = await readManifest(modDir);
+        const modObj = await buildModObject(modDir, manifest);
+        modObj.character = character;
+        mods.push(modObj);
+      } catch (err) {
+        console.error(`Failed to build mod object for ${modDir}:`, err);
+      }
+    }
+  }
+
+  return mods;
 }
 
 export function getManagerModsDir() {
@@ -98,9 +119,11 @@ async function importFromZip(zipPath, character = null) {
   ensureDirs();
   const cfg = await readConfig();
   const modsDir = getManagerModsDir();
-  if (!fs.existsSync(modsDir)) fs.mkdirSync(modsDir, { recursive: true });
   const baseName = path.basename(zipPath, path.extname(zipPath));
-  const targetDir = path.join(modsDir, baseName);
+  const characterDir = character ? path.join(modsDir, character) : modsDir;
+  if (character && !fs.existsSync(characterDir))
+    fs.mkdirSync(characterDir, { recursive: true });
+  const targetDir = path.join(characterDir, baseName);
   const uniqueDir = await uniqueDirectory(targetDir);
   const zip = new AdmZip(zipPath);
   zip.extractAllTo(uniqueDir, true);
@@ -111,9 +134,11 @@ async function importFromFolder(folderPath, character = null) {
   ensureDirs();
   const cfg = await readConfig();
   const modsDir = getManagerModsDir();
-  if (!fs.existsSync(modsDir)) fs.mkdirSync(modsDir, { recursive: true });
   const baseName = path.basename(folderPath);
-  const targetDir = path.join(modsDir, baseName);
+  const characterDir = character ? path.join(modsDir, character) : modsDir;
+  if (character && !fs.existsSync(characterDir))
+    fs.mkdirSync(characterDir, { recursive: true });
+  const targetDir = path.join(characterDir, baseName);
   const uniqueDir = await uniqueDirectory(targetDir);
   await copyDirectory(folderPath, uniqueDir);
   return await registerMod(uniqueDir, character);

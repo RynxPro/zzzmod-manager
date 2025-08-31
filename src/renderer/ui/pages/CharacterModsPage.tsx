@@ -46,6 +46,7 @@ const CharacterModsPage: React.FC = () => {
     if (!charName) return;
     const filePath = await window.electronAPI.mods.chooseZip();
     if (filePath) {
+      // Explicitly pass charName as the second argument
       await window.electronAPI.mods.importZip(filePath, charName);
       setIsLoading(true);
       try {
@@ -67,6 +68,7 @@ const CharacterModsPage: React.FC = () => {
     if (!charName) return;
     const folderPath = await window.electronAPI.mods.chooseFolder();
     if (folderPath) {
+      // Explicitly pass charName as the second argument
       await window.electronAPI.mods.importFolder(folderPath, charName);
       setIsLoading(true);
       try {

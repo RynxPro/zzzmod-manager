@@ -17,7 +17,7 @@ declare global {
   }
 
   interface ImportOptions {
-    type: 'zip' | 'folder' | 'file';
+    type: "zip" | "folder" | "file";
     path: string;
     character?: string | null;
   }
@@ -26,19 +26,24 @@ declare global {
     // List mods
     listLibrary: () => Promise<ModItem[]>;
     listActive: () => Promise<ModItem[]>;
-    
+
     // Mod management
     toggleMod: (id: string, turnOn: boolean) => Promise<boolean>;
     remove: (id: string) => Promise<boolean>;
     deleteMod: (id: string) => Promise<boolean>;
-    
+
     // Import methods
     importMod: (options: ImportOptions) => Promise<ModItem>;
-    openImportDialog: (type: 'zip' | 'folder' | 'file') => Promise<{ canceled: boolean; filePaths: string[] }>;
-    
+    openImportDialog: (
+      type: "zip" | "folder" | "file"
+    ) => Promise<{ canceled: boolean; filePaths: string[] }>;
+
     // Legacy import methods (kept for backward compatibility)
     importZip: (zipPath: string, character?: string | null) => Promise<ModItem>;
-    importFolder: (folderPath: string, character?: string | null) => Promise<ModItem>;
+    importFolder: (
+      folderPath: string,
+      character?: string | null
+    ) => Promise<ModItem>;
     chooseZip: () => Promise<string | null>;
     chooseFolder: () => Promise<string | null>;
   }

@@ -66,19 +66,34 @@ export const ModsPage: FC<ModsPageProps> = ({ initialCharacter = null }) => {
       // Skip invalid mod objects
       if (!mod || typeof mod !== "object") return false;
 
+      // Normalize character names for comparison
+      const modCharacter = mod.character?.toLowerCase() || 'global';
+      const selectedChar = selectedCharacter?.toLowerCase() || null;
+
       // Filter by selected character if any
-      if (selectedCharacter && mod.character !== selectedCharacter)
-        return false;
+      if (selectedChar) {
+        // If mod has no character specified, include it for all characters
+        // Otherwise match the exact character
+        if (modCharacter !== 'global' && modCharacter !== selectedChar) {
+          return false;
+        }
+      } else {
+        // If no character is selected, only show global mods
+        if (modCharacter !== 'global') {
+          return false;
+        }
+      }
 
       // If no search query, include all matching the character filter
       if (!q) return true;
 
-      // Search in mod properties
+      // Search in mod properties (case-insensitive)
       return (
         (mod.name && mod.name.toLowerCase().includes(q)) ||
         (mod.description && mod.description.toLowerCase().includes(q)) ||
         (mod.author && mod.author.toLowerCase().includes(q)) ||
-        (mod.version && mod.version.toLowerCase().includes(q))
+        (mod.version && mod.version.toLowerCase().includes(q)) ||
+        (modCharacter && modCharacter.includes(q)) // Also search in character names
       );
     });
 
@@ -110,14 +125,62 @@ export const ModsPage: FC<ModsPageProps> = ({ initialCharacter = null }) => {
     });
   }, [mods, query, sortBy, sortDir, selectedCharacter]);
 
+  const loadMods = useCallback(async () => {
+    try {
+      setLoading(true);
+      const settings = await window.electronAPI.settings.get();
+      setModsDir(settings.modsDir || "");
+
+      if (!settings.modsDir?.trim()) {
+        setNeedsSetup(true);
+        setMods([]);
+        setError("Mods directory not set. Please configure it in settings.");
+        return;
+      }
+      
+      setNeedsSetup(false);
+      const modsList = await window.electronAPI.mods.listLibrary();
+      
+      // Process mods and ensure character property is properly set
+      const processedMods = modsList.map((mod: ModItem) => {
+        // If mod has no character but has a dir that includes a character name, extract it
+        let character = mod.character;
+        if (!character && mod.dir) {
+          const characterMatch = mod.dir.match(/([^/\\]+)[/\\]?$/);
+          if (characterMatch) {
+            character = characterMatch[1];
+          }
+        }
+        
+        return {
+          ...mod,
+          enabled: !!mod.enabled,
+          character: character || 'global', // Default to 'global' if no character specified
+        };
+      });
+      
+      console.log('Loaded mods:', processedMods);
+      setMods(processedMods);
+      setError(null);
+    } catch (err) {
+      console.error("Error loading mods:", err);
+      setError("Failed to load mods. Please try refreshing.");
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, []);
+
   const toggleMod = useCallback(
     async (modId: string, enabled: boolean) => {
-      try {
-        setTogglingMods((prev) => ({ ...prev, [modId]: true }));
-        await window.electronAPI.mods.toggleMod(modId, enabled);
+      setTogglingMods((prev) => ({ ...prev, [modId]: true }));
 
+      try {
+        await window.electronAPI.mods.toggleMod(modId, enabled);
         setMods((prevMods) =>
-          prevMods.map((mod) => (mod.id === modId ? { ...mod, enabled } : mod))
+          prevMods.map((mod) =>
+            mod.id === modId ? { ...mod, enabled } : mod
+          )
         );
 
         success(`Mod ${enabled ? "enabled" : "disabled"} successfully`);
@@ -144,9 +207,7 @@ export const ModsPage: FC<ModsPageProps> = ({ initialCharacter = null }) => {
 
       try {
         await window.electronAPI.mods.deleteMod(modId);
-
         setMods((prevMods) => prevMods.filter((mod) => mod.id !== modId));
-
         success("Mod deleted successfully");
         await loadMods();
       } catch (err) {
@@ -156,34 +217,6 @@ export const ModsPage: FC<ModsPageProps> = ({ initialCharacter = null }) => {
     },
     [success, showError, loadMods]
   );
-
-  const loadMods = useCallback(async () => {
-    try {
-      setLoading(true);
-      const settings = await window.electronAPI.settings.get();
-      setModsDir(settings.modsDir || "");
-
-      if (!settings.modsDir?.trim()) {
-        setNeedsSetup(true);
-        setMods([]);
-        setError(null);
-      } else {
-        setNeedsSetup(false);
-        const modsList = await window.electronAPI.mods.listLibrary();
-        const processedMods = modsList.map((mod: ModItem) => ({
-          ...mod,
-          enabled: !!mod.enabled,
-        }));
-        setMods(processedMods);
-        setError(null);
-      }
-    } catch (e: any) {
-      setError(e?.message || "Failed to load mods");
-      setNeedsSetup(false);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
 
   // Load mods on mount and whenever selectedCharacter changes
   useEffect(() => {
