@@ -136,12 +136,35 @@ async function importFromFolder(folderPath, character = null) {
   const modsDir = getManagerModsDir();
   const baseName = path.basename(folderPath);
   const characterDir = character ? path.join(modsDir, character) : modsDir;
-  if (character && !fs.existsSync(characterDir))
+  
+  // Check if the source folder exists
+  if (!fs.existsSync(folderPath)) {
+    throw new Error(`Source folder does not exist: ${folderPath}`);
+  }
+  
+  // Check for manifest.json in the source folder (optional)
+  const sourceManifestPath = path.join(folderPath, 'manifest.json');
+  if (!fs.existsSync(sourceManifestPath)) {
+    console.warn(`No manifest.json found in source folder: ${folderPath}. Using default values.`);
+  }
+  
+  if (character && !fs.existsSync(characterDir)) {
     fs.mkdirSync(characterDir, { recursive: true });
+  }
+  
   const targetDir = path.join(characterDir, baseName);
   const uniqueDir = await uniqueDirectory(targetDir);
-  await copyDirectory(folderPath, uniqueDir);
-  return await registerMod(uniqueDir, character);
+  
+  try {
+    await copyDirectory(folderPath, uniqueDir);
+    return await registerMod(uniqueDir, character);
+  } catch (error) {
+    // Clean up the directory if registration fails
+    if (fs.existsSync(uniqueDir)) {
+      await fsp.rm(uniqueDir, { recursive: true, force: true });
+    }
+    throw error; // Re-throw the error after cleanup
+  }
 }
 
 async function uniqueDirectory(targetDir) {
@@ -229,28 +252,33 @@ async function computeDirectorySizeBytes(dir) {
 }
 
 async function buildModObject(modDir, manifest) {
-  const fallbackName = path.basename(modDir);
+  const modName = path.basename(modDir);
   return {
-    id: makeId(modDir),
-    name: manifest?.name || fallbackName,
-    version: manifest?.version || "1.0.0",
-    author: manifest?.author || "Unknown",
-    description: manifest?.description || "No description provided.",
-    enabled: false,
+    id: makeId(manifest?.name || modName),
+    name: manifest?.name || modName,
+    description: manifest?.description || `Mod: ${modName}`,
+    author: manifest?.author || 'Unknown',
+    version: manifest?.version || '1.0.0',
+    character: manifest?.character || null,
     dir: modDir,
     dateAdded: Date.now(),
     sizeBytes: await computeDirectorySizeBytes(modDir),
-    thumbnailPath: await findThumbnailPath(modDir, manifest),
+    thumbnailPath: await findThumbnailPath(modDir, manifest || {}),
   };
 }
 
 async function registerMod(modDir, character = null) {
   const manifest = await readManifest(modDir);
-  if (!manifest) {
-    throw new Error(`No manifest.json found in ${modDir}`);
-  }
-
-  const mod = await buildModObject(modDir, manifest);
+  
+  // If no manifest, create a default one using folder name
+  const defaultManifest = {
+    name: path.basename(modDir),
+    description: 'No manifest found',
+    author: 'Unknown',
+    version: '1.0.0'
+  };
+  
+  const mod = await buildModObject(modDir, manifest || defaultManifest);
   mod.enabled = false;
   mod.activePath = null;
 
