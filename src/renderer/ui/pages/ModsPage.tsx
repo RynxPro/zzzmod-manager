@@ -9,7 +9,13 @@ import {
   Trash2,
   Search,
   Plus,
+  Loader2,
+  AlertCircle,
+  CheckCircle2,
+  XCircle,
+  Info,
 } from "lucide-react";
+import { ConfirmDialog } from "../../components/ConfirmDialog";
 import { useToast, ToastContainer } from "../components/Toast";
 import CharacterSelectDialog from "../../components/CharacterSelectDialog";
 
@@ -42,6 +48,7 @@ export const ModsPage: FC<ModsPageProps> = ({ initialCharacter = null }) => {
   const [selectedCharacter, setSelectedCharacter] = useState<string | null>(
     initialCharacter || null
   );
+  const [modToDelete, setModToDelete] = useState<string | null>(null);
 
   // Memoized values
   const availableCharacters = useMemo(() => {
@@ -199,27 +206,27 @@ export const ModsPage: FC<ModsPageProps> = ({ initialCharacter = null }) => {
   );
 
   const deleteMod = useCallback(
-    async (modId: string) => {
-      if (
-        !window.confirm(
-          "Are you sure you want to delete this mod? This action cannot be undone."
-        )
-      ) {
-        return;
-      }
-
-      try {
-        await window.electronAPI.mods.deleteMod(modId);
-        setMods((prevMods) => prevMods.filter((mod) => mod.id !== modId));
-        success("Mod deleted successfully");
-        await loadMods();
-      } catch (err) {
-        console.error("Error deleting mod:", err);
-        showError("Failed to delete mod");
-      }
+    (modId: string) => {
+      setModToDelete(modId);
     },
-    [success, showError, loadMods]
+    []
   );
+
+  const confirmDelete = useCallback(async () => {
+    if (!modToDelete) return;
+    
+    try {
+      await window.electronAPI.mods.deleteMod(modToDelete);
+      setMods((prevMods) => prevMods.filter((mod) => mod.id !== modToDelete));
+      success("Mod deleted successfully");
+      await loadMods();
+    } catch (err) {
+      console.error("Error deleting mod:", err);
+      showError("Failed to delete mod");
+    } finally {
+      setModToDelete(null);
+    }
+  }, [modToDelete, success, showError, loadMods]);
 
   // Load mods on mount and whenever selectedCharacter changes
   useEffect(() => {
@@ -607,6 +614,15 @@ export const ModsPage: FC<ModsPageProps> = ({ initialCharacter = null }) => {
           )}
         </div>
       </div>
+      
+      <ConfirmDialog
+        isOpen={!!modToDelete}
+        onClose={() => setModToDelete(null)}
+        onConfirm={confirmDelete}
+        title="Delete Mod"
+        message="Are you sure you want to delete this mod? This action cannot be undone."
+        confirmText="Delete"
+      />
     </div>
   );
 };
