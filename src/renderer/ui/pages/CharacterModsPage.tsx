@@ -12,36 +12,40 @@ const CharacterModsPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    let isMounted = true;
-    async function fetchMods() {
-      try {
-        if (!charName) {
-          throw new Error("Character name is required");
-        }
-        const modsList = await window.electronAPI.mods.listModsByCharacter(
-          charName
-        );
-        if (isMounted) {
-          setMods(modsList);
-          setError(null);
-        }
-      } catch (err) {
-        console.error("Failed to fetch mods:", err);
-        if (isMounted) {
-          setError(err instanceof Error ? err.message : "Failed to load mods");
-        }
-      } finally {
-        if (isMounted) {
-          setIsLoading(false);
-        }
-      }
+  const fetchMods = useCallback(async () => {
+    if (!charName) return;
+    
+    try {
+      setIsLoading(true);
+      const modsList = await window.electronAPI.mods.listModsByCharacter(charName);
+      
+      // Also fetch the full mod list to ensure we have the latest enabled state
+      const allMods = await window.electronAPI.mods.listLibrary();
+      
+      // Merge the enabled state from the full list
+      const modsWithState = modsList.map(mod => {
+        const fullMod = allMods.find(m => m.id === mod.id);
+        return fullMod ? { ...mod, enabled: fullMod.enabled } : mod;
+      });
+      
+      setMods(modsWithState);
+      setError(null);
+    } catch (err) {
+      console.error("Failed to fetch mods:", err);
+      setError(err instanceof Error ? err.message : "Failed to load mods");
+    } finally {
+      setIsLoading(false);
     }
-    fetchMods();
-    return () => {
-      isMounted = false;
-    };
   }, [charName]);
+
+  useEffect(() => {
+    fetchMods();
+    
+    // Set up an interval to periodically refresh mod state
+    const interval = setInterval(fetchMods, 5000);
+    
+    return () => clearInterval(interval);
+  }, [fetchMods]);
 
   // Upload zip handler
   const handleUploadZip = async () => {
@@ -91,32 +95,32 @@ const CharacterModsPage: React.FC = () => {
     if (!charName) return;
     
     try {
-      // Toggle the mod in the backend first
+      // Update UI optimistically
+      setMods(prevMods => 
+        prevMods.map(mod => 
+          mod.id === modId 
+            ? { ...mod, enabled, pending: true }
+            : mod
+        )
+      );
+      
+      // Toggle the mod in the backend
       const success = await window.electronAPI.mods.toggleMod(modId, enabled);
       if (!success) {
         throw new Error('Failed to toggle mod');
       }
       
-      // Only update the UI after successful toggle
-      setMods(prevMods => 
-        prevMods.map(mod => 
-          mod.id === modId 
-            ? { ...mod, enabled }
-            : mod
-        )
-      );
+      // Refresh the mods list to ensure UI is in sync with backend
+      await fetchMods();
       
     } catch (err) {
       console.error("Failed to toggle mod:", err);
       setError(err instanceof Error ? err.message : "Failed to toggle mod");
       
-      // Refresh the mods list to ensure UI is in sync with backend
-      const updatedMods = await window.electronAPI.mods.listModsByCharacter(charName);
-      setMods(updatedMods);
-      const freshMods = await window.electronAPI.mods.listModsByCharacter(charName);
-      setMods(freshMods);
+      // Revert UI state on error by refreshing from backend
+      await fetchMods();
     }
-  }, [charName]);
+  }, [charName, fetchMods]);
 
   const handleDeleteMod = useCallback(async (modId: string) => {
     if (!charName || !window.confirm("Are you sure you want to delete this mod? This action cannot be undone.")) {

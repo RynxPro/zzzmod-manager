@@ -165,10 +165,19 @@ export const ModsPage: FC<ModsPageProps> = ({ initialCharacter = null }) => {
       }
       
       setNeedsSetup(false);
-      const modsList = await window.electronAPI.mods.listLibrary();
+      // Always refresh the full mod list to ensure we have the latest state
+      const [modsList, activeMods] = await Promise.all([
+        window.electronAPI.mods.listLibrary(),
+        window.electronAPI.mods.listActive()
+      ]);
+      
+      // Create a set of active mod IDs for quick lookup
+      const activeModIds = new Set(activeMods.map(mod => mod.id));
+      
+      // Update mods with their actual enabled state
       const processedMods = modsList.map((mod: ModItem) => ({
         ...mod,
-        enabled: !!mod.enabled,
+        enabled: activeModIds.has(mod.id)
       }));
       
       setMods(processedMods);
@@ -181,29 +190,45 @@ export const ModsPage: FC<ModsPageProps> = ({ initialCharacter = null }) => {
       setRefreshing(false);
     }
   }, []);
+  
+  // Add a periodic refresh of mods
+  useEffect(() => {
+    const interval = setInterval(loadMods, 5000);
+    return () => clearInterval(interval);
+  }, [loadMods]);
 
   const toggleMod = useCallback(
     async (modId: string, enabled: boolean) => {
       setTogglingMods((prev) => ({ ...prev, [modId]: true }));
 
       try {
-        await window.electronAPI.mods.toggleMod(modId, enabled);
-        setMods((prevMods) =>
-          prevMods.map((mod) =>
-            mod.id === modId ? { ...mod, enabled } : mod
+        // Update UI optimistically
+        setMods(prevMods =>
+          prevMods.map(mod =>
+            mod.id === modId ? { ...mod, enabled, pending: true } : mod
           )
         );
 
-        success(`Mod ${enabled ? "enabled" : "disabled"} successfully`);
+        // Toggle mod in backend
+        const success = await window.electronAPI.mods.toggleMod(modId, enabled);
+        if (!success) {
+          throw new Error('Failed to toggle mod');
+        }
+
+        // Refresh the full mod list to ensure consistency
         await loadMods();
+        showError(`Mod ${enabled ? "enabled" : "disabled"} successfully`, 'success');
       } catch (err) {
         console.error("Error toggling mod:", err);
+        showError(`Failed to ${enabled ? "enable" : "disable"} mod`);
+        // Revert to the actual state from backend
+        await loadMods();
         showError(`Failed to ${enabled ? "enable" : "disable"} mod`);
       } finally {
         setTogglingMods((prev) => ({ ...prev, [modId]: false }));
       }
     },
-    [success, showError, loadMods]
+    [showError, loadMods]
   );
 
   const deleteMod = useCallback(
