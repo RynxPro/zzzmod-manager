@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { FiPower, FiTrash2 } from 'react-icons/fi';
-import { ModItem } from '../types/mods';
+import { ModItem } from '../ui/types/mods';
 
 interface ModCardProps {
   mod: ModItem;
@@ -10,7 +10,12 @@ interface ModCardProps {
 }
 
 const ModCard: React.FC<ModCardProps> = ({ mod, onToggle, onDelete }) => {
-  const thumbnail = mod.thumbnailPath || 'https://via.placeholder.com/300x150/1a1a2e/ffffff?text=No+Preview';
+  const [imageError, setImageError] = useState(false);
+  const thumbnail = (mod.thumbnailPath && !imageError) ? 
+    mod.thumbnailPath.startsWith('http') ? 
+      mod.thumbnailPath : 
+      `file://${mod.thumbnailPath}` : 
+    null;
   
   return (
     <motion.div 
@@ -18,14 +23,22 @@ const ModCard: React.FC<ModCardProps> = ({ mod, onToggle, onDelete }) => {
       whileHover={{ y: -4 }}
     >
       <div className="relative h-40 overflow-hidden">
-        <img 
-          src={thumbnail} 
-          alt={mod.name} 
-          className="w-full h-full object-cover"
-          onError={(e) => {
-            (e.target as HTMLImageElement).src = 'https://via.placeholder.com/300x150/1a1a2e/ffffff?text=No+Preview';
-          }}
-        />
+        {thumbnail ? (
+          <img 
+            src={thumbnail} 
+            alt={mod.name} 
+            className="w-full h-full object-cover"
+            onError={() => setImageError(true)}
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-800 to-gray-900">
+            <div className="text-center p-4">
+              <div className="text-4xl mb-2">🎮</div>
+              <p className="text-xs text-gray-400">No Preview</p>
+              <p className="text-xxs text-gray-500 mt-1">{mod.name}</p>
+            </div>
+          </div>
+        )}
         <div className="absolute bottom-2 right-2">
           <span className={`px-2 py-1 rounded-full text-xs font-medium ${
             mod.enabled 
