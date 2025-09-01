@@ -150,7 +150,7 @@ function setupAppMenu(mainWindow) {
           label: "Learn More",
           click: async () => {
             await shell.openExternal(
-              "https://github.com/wassimdev/zzzmod-manager"
+              "https://github.com/RynxPro/zzzmod-manager"
             );
           },
         },
