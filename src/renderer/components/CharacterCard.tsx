@@ -31,7 +31,7 @@ const CharacterCard: React.FC<CharacterCardProps> = ({
         <img
           src={imageUrl}
           alt={name}
-          className="relative z-10 w-24 h-24 rounded-full object-cover shadow-md group-hover:shadow-moonGlowViolet transition-all duration-300"
+          className="relative z-10 w-24 h-24 rounded-full object-cover shadow-md group-hover:shadow-moonGlowViolet transition-all duration-300 transform -scale-y-100"
         />
       </div>
       <div className="relative">
