@@ -41,9 +41,7 @@ const AboutPage: React.FC = () => {
             <div className="w-10 h-10 rounded-xl bg-moon-glowCyan/20 flex items-center justify-center">
               <Zap size={20} className="text-moon-accent" />
             </div>
-            <h3 className="text-xl font-semibold text-moon-text">
-              Features
-            </h3>
+            <h3 className="text-xl font-semibold text-moon-text">Features</h3>
           </div>
           <ul className="space-y-2 text-moon-muted">
             <li>• Drag & drop mod installation</li>
@@ -60,9 +58,7 @@ const AboutPage: React.FC = () => {
             <div className="w-10 h-10 rounded-xl bg-moon-glowViolet/20 flex items-center justify-center">
               <Code size={20} className="text-moon-accent" />
             </div>
-            <h3 className="text-xl font-semibold text-moon-text">
-              Built With
-            </h3>
+            <h3 className="text-xl font-semibold text-moon-text">Built With</h3>
           </div>
           <ul className="space-y-2 text-moon-muted">
             <li>• Electron for cross-platform support</li>
