@@ -44,9 +44,11 @@ export default {
         },
         // Keep existing neon colors for compatibility
         neon: {
+          cyan: "#00f5ff",
           blue: "#00f5ff",
           purple: "#8b5cf6",
           pink: "#f471b5",
+          magenta: "#f471b5",
           green: "#10b981",
           cyan: "#00f5ff",
           violet: "#8b5cf6",

@@ -1,7 +1,9 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import ModsPage from "./ModsPage";
+import { motion } from "framer-motion";
 import { ModItem } from "../types/mods";
+import ModCard from "../../components/ModCard";
+import { FiFolderPlus, FiArrowLeft, FiPower, FiTrash2 } from "react-icons/fi";
 
 const CharacterModsPage: React.FC = () => {
   const { charName } = useParams<{ charName: string }>();
@@ -85,16 +87,47 @@ const CharacterModsPage: React.FC = () => {
     }
   };
 
+  const handleToggleMod = useCallback(async (modId: string, enabled: boolean) => {
+    if (!charName) return;
+    try {
+      await window.electronAPI.mods.toggleMod(modId, enabled);
+      // Refresh the mods list
+      const updatedMods = await window.electronAPI.mods.listModsByCharacter(charName);
+      setMods(updatedMods);
+    } catch (err) {
+      console.error("Failed to toggle mod:", err);
+      setError(err instanceof Error ? err.message : "Failed to toggle mod");
+    }
+  }, [charName]);
+
+  const handleDeleteMod = useCallback(async (modId: string) => {
+    if (!charName || !window.confirm("Are you sure you want to delete this mod? This action cannot be undone.")) {
+      return;
+    }
+    try {
+      await window.electronAPI.mods.deleteMod(modId);
+      // Refresh the mods list
+      const updatedMods = await window.electronAPI.mods.listModsByCharacter(charName);
+      setMods(updatedMods);
+    } catch (err) {
+      console.error("Failed to delete mod:", err);
+      setError(err instanceof Error ? err.message : "Failed to delete mod");
+    }
+  }, [charName]);
+
   if (!charName) {
     return (
-      <div className="p-6">
+      <div className="p-6 text-white">
         <button
           onClick={() => navigate("/characters")}
-          className="px-3 py-2 rounded-xl bg-gray-700 text-white hover:bg-gray-600 mb-4"
+          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-800 hover:bg-gray-700 transition-colors duration-200"
         >
-          ← Back to Characters
+          <FiArrowLeft className="text-neon-cyan" />
+          Back to Characters
         </button>
-        <div className="text-red-500">Error: Character name is missing</div>
+        <div className="mt-4 p-4 bg-red-900/30 border border-red-500/50 rounded-lg text-red-300">
+          Error: Character name is missing
+        </div>
       </div>
     );
   }
@@ -104,7 +137,7 @@ const CharacterModsPage: React.FC = () => {
       <div className="p-6">
         <button
           onClick={() => navigate("/characters")}
-          className="px-3 py-2 rounded-xl bg-gray-700 text-white hover:bg-gray-600 mb-4"
+          className="px-3 py-2 rounded-xl bg-gray-700 text-white hover:bg-gray-600 mb-4 transition-all duration-200 hover:bg-opacity-80"
         >
           ← Back to Characters
         </button>
@@ -131,40 +164,63 @@ const CharacterModsPage: React.FC = () => {
   }
 
   return (
-    <div className="p-6">
-      <button
-        onClick={() => navigate("/characters")}
-        className="px-3 py-2 rounded-xl bg-gray-700 text-white hover:bg-gray-600 mb-4 transition-all duration-200 hover:bg-opacity-80"
-      >
-        ← Back to Characters
-      </button>
-      <h2 className="text-2xl font-bold mb-4 text-gaming-accent-cyan">
-        {charName}'s Mods
-      </h2>
-      <div className="flex flex-row gap-3 mb-4">
-        <button
-          onClick={handleUploadZip}
-          className="px-3 py-2 rounded-xl bg-gaming-accent-cyan text-white hover:bg-opacity-80 transition-all duration-200"
+    <div className="p-6 text-white">
+      <div className="flex items-center mb-8">
+        <motion.button
+          onClick={() => navigate("/characters")}
+          whileHover={{ x: -2 }}
+          whileTap={{ scale: 0.98 }}
+          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-800 hover:bg-gray-700 transition-colors duration-200"
         >
-          Upload Zip
-        </button>
-        <button
-          onClick={handleUploadFolder}
-          className="px-3 py-2 rounded-xl bg-gaming-accent-pink text-white hover:bg-opacity-80 transition-all duration-200"
-        >
-          Upload Folder
-        </button>
+          <FiArrowLeft className="text-neon-cyan" />
+          Back to Characters
+        </motion.button>
+        <h1 className="text-3xl font-bold ml-4 bg-gradient-to-r from-neon-cyan to-neon-purple bg-clip-text text-transparent">
+          {charName}'s Mods
+        </h1>
       </div>
-      {mods.length > 0 ? (
-        <ModsPage mods={mods} initialCharacter={charName} />
-      ) : (
-        <div className="text-gray-400 p-6 rounded-lg bg-gray-800 bg-opacity-50 border border-gray-700">
-          <p>No mods found for {charName}.</p>
-          <p className="text-sm mt-2 text-gray-500">
-            Try importing mods for this character.
-          </p>
-        </div>
-      )}
+      
+      <div className="space-y-6">
+        <motion.div 
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          className="inline-block"
+        >
+          <button
+            onClick={handleUploadFolder}
+            className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-neon-purple to-neon-pink rounded-xl hover:opacity-90 transition-all duration-200 shadow-lg shadow-neon-purple/20"
+          >
+            <FiFolderPlus className="text-xl" />
+            <span className="font-medium">Import Mod Folder</span>
+          </button>
+        </motion.div>
+
+        {isLoading ? (
+          <div className="flex justify-center items-center h-64">
+            <div className="animate-pulse text-neon-cyan">Loading mods...</div>
+          </div>
+        ) : error ? (
+          <div className="p-4 bg-red-900/30 border border-red-500/50 rounded-lg text-red-300">
+            {error}
+          </div>
+        ) : mods.length === 0 ? (
+          <div className="text-center py-12 bg-gray-800/50 rounded-xl border border-gray-700/50">
+            <p className="text-gray-400">No mods installed for {charName} yet.</p>
+            <p className="text-sm text-gray-500 mt-2">Click 'Import Mod Folder' to add mods</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {mods.map((mod) => (
+              <ModCard 
+                key={mod.id} 
+                mod={mod} 
+                onToggle={handleToggleMod}
+                onDelete={handleDeleteMod}
+              />
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 };

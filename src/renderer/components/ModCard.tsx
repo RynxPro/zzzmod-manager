@@ -1,116 +1,72 @@
-import { motion } from "framer-motion";
-import { CheckCircle, XCircle, Trash2 } from "lucide-react";
-import { ModItem } from "../ui/types/mods";
+import React from 'react';
+import { motion } from 'framer-motion';
+import { FiPower, FiTrash2 } from 'react-icons/fi';
+import { ModItem } from '../types/mods';
 
 interface ModCardProps {
   mod: ModItem;
-  onEnableToggle: (modId: string, enabled: boolean) => void;
-  onDelete: (modId: string) => void;
-  isToggling?: boolean;
+  onToggle: (id: string, enabled: boolean) => void;
+  onDelete: (id: string) => void;
 }
 
-export function ModCard({
-  mod,
-  onEnableToggle,
-  onDelete,
-  isToggling,
-}: ModCardProps) {
+const ModCard: React.FC<ModCardProps> = ({ mod, onToggle, onDelete }) => {
+  const thumbnail = mod.thumbnailPath || 'https://via.placeholder.com/300x150/1a1a2e/ffffff?text=No+Preview';
+  
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      whileHover={{
-        y: -5,
-        scale: 1.02,
-        boxShadow: "0 10px 25px rgba(0,0,0,0.1)",
-      }}
-      className="glass-panel rounded-2xl overflow-hidden border border-gaming-border/30 hover:border-gaming-border/70 transition-all duration-300"
+    <motion.div 
+      className="bg-gray-800/50 rounded-xl overflow-hidden border border-gray-700/50 hover:border-neon-cyan/50 transition-all duration-300 hover:shadow-lg hover:shadow-neon-cyan/10"
+      whileHover={{ y: -4 }}
     >
-      {/* Thumbnail */}
-      {mod.thumbnailPath ? (
-        <img
-          src={`file://${mod.thumbnailPath}`}
-          alt={`${mod.name} thumbnail`}
-          className="w-full h-32 object-cover"
-          loading="lazy"
+      <div className="relative h-40 overflow-hidden">
+        <img 
+          src={thumbnail} 
+          alt={mod.name} 
+          className="w-full h-full object-cover"
+          onError={(e) => {
+            (e.target as HTMLImageElement).src = 'https://via.placeholder.com/300x150/1a1a2e/ffffff?text=No+Preview';
+          }}
         />
-      ) : (
-        <div className="w-full h-32 flex items-center justify-center bg-gaming-bg-overlay/30 text-gaming-text-muted">
-          No Thumbnail
+        <div className="absolute bottom-2 right-2">
+          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+            mod.enabled 
+              ? 'bg-green-900/80 text-green-300' 
+              : 'bg-gray-900/80 text-gray-400'
+          }`}>
+            {mod.enabled ? 'Enabled' : 'Disabled'}
+          </span>
         </div>
-      )}
-
+      </div>
+      
       <div className="p-4">
-        <div className="flex justify-between items-start mb-3">
-          <div>
-            <h3 className="text-gaming-text-primary font-medium text-sm truncate">
-              {mod.name}
-            </h3>
-            <div className="flex gap-2 mt-1 flex-wrap">
-              {mod.version && (
-                <span className="bg-gray-700 text-white px-2 py-0.5 rounded text-xs">
-                  v{mod.version}
-                </span>
-              )}
-              {mod.author && (
-                <span className="bg-gray-700 text-white px-2 py-0.5 rounded text-xs">
-                  By {mod.author}
-                </span>
-              )}
-              {typeof mod.sizeBytes === "number" && (
-                <span className="bg-gray-700 text-white px-2 py-0.5 rounded text-xs">
-                  {formatFileSize(mod.sizeBytes)}
-                </span>
-              )}
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => onEnableToggle(mod.id, !mod.enabled)}
-              className={`p-1.5 rounded-lg focus:outline-none relative ${
-                mod.enabled
-                  ? "bg-green-500 hover:bg-green-600 text-white"
-                  : "bg-red-500 hover:bg-red-600 text-white"
-              } transition-colors`}
-              title={mod.enabled ? "On" : "Off"}
-              aria-label={mod.enabled ? "On" : "Off"}
-              aria-pressed={mod.enabled}
-              disabled={isToggling}
-            >
-              {isToggling ? (
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto" />
-              ) : mod.enabled ? (
-                "On"
-              ) : (
-                "Off"
-              )}
-            </button>
-            <button
-              onClick={() => onDelete(mod.id)}
-              className="p-1.5 rounded-lg focus:outline-none bg-gaming-bg-overlay/50 text-gaming-text-muted hover:bg-gaming-status-error/20 hover:text-gaming-status-error transition-colors"
-              title="Delete mod"
-              aria-label="Delete mod"
-            >
-              <Trash2 size={16} />
-            </button>
-          </div>
+        <h3 className="font-bold text-lg text-white mb-1 truncate">{mod.name}</h3>
+        <p className="text-gray-400 text-sm h-10 line-clamp-2 mb-4">
+          {mod.description || 'No description available'}
+        </p>
+        
+        <div className="flex justify-between items-center">
+          <button
+            onClick={() => onToggle(mod.id, !mod.enabled)}
+            className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+              mod.enabled
+                ? 'bg-red-900/50 hover:bg-red-800/70 text-red-300 hover:text-white'
+                : 'bg-green-900/50 hover:bg-green-800/70 text-green-300 hover:text-white'
+            }`}
+          >
+            <FiPower className="text-xs" />
+            {mod.enabled ? 'Disable' : 'Enable'}
+          </button>
+          
+          <button
+            onClick={() => onDelete(mod.id)}
+            className="p-1.5 text-gray-400 hover:text-red-400 transition-colors"
+            title="Delete Mod"
+          >
+            <FiTrash2 />
+          </button>
         </div>
-
-        {mod.description && (
-          <p className="text-xs text-gaming-text-secondary mb-3 hover:line-clamp-none line-clamp-2 transition-all">
-            {mod.description}
-          </p>
-        )}
       </div>
     </motion.div>
   );
-}
+};
 
-function formatFileSize(bytes: number): string {
-  if (!bytes || bytes < 0) return "0 B";
-  const units = ["B", "KB", "MB", "GB", "TB", "PB"];
-  const i = Math.floor(Math.log(bytes) / Math.log(1024));
-  const size = bytes / Math.pow(1024, i);
-  return `${size.toFixed(1)} ${units[i]}`;
-}
+export default ModCard;
