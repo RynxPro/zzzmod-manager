@@ -191,7 +191,7 @@ safeIpcHandle("mods:listModsByCharacter", async (_e, character) => {
 safeIpcHandle("mods:listActive", async () => modsApi.listActive());
 safeIpcHandle("mods:enable", async (_e, id) => modsApi.setEnabled(id, true));
 safeIpcHandle("mods:disable", async (_e, id) => modsApi.setEnabled(id, false));
-safeIpcHandle("mods:remove", async (_e, id) => modsApi.deleteMod(id));
+safeIpcHandle("mods:deleteMod", async (_e, id) => modsApi.deleteMod(id));
 
 // Import handlers with character support
 safeIpcHandle("mods:importZip", async (_e, filePath, character = null) => {
