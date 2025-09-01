@@ -5,7 +5,7 @@ declare interface Window {
     mods: {
       listLibrary: () => Promise<ModItem[]>;
       listActive: () => Promise<ModItem[]>;
-      toggleMod: (id: string, turnOn: boolean) => Promise<boolean>;
+      toggleMod: (id: string, turnOn: boolean) => Promise<{ success: boolean; message?: string; mod?: ModItem }>;
       remove: (id: string) => Promise<boolean>;
       importZip: (zipPath: string, character?: string | null) => Promise<ModItem>;
       importFolder: (folderPath: string, character?: string | null) => Promise<ModItem>;

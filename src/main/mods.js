@@ -127,27 +127,27 @@ async function importFromZip(zipPath, character = null) {
   const uniqueDir = await uniqueDirectory(targetDir);
   const zip = new AdmZip(zipPath);
   zip.extractAllTo(uniqueDir, true);
-  
+
   const mod = await registerMod(uniqueDir, character);
-  
+
   // Check if the mod is already in the active mods directory
   const config = await readConfig();
   const activeModsDir = getActiveModsDir(config.settings);
   const activeModPath = path.join(activeModsDir, path.basename(uniqueDir));
-  
+
   if (fs.existsSync(activeModPath)) {
     // If mod exists in active mods, update its state
     mod.enabled = true;
     mod.activePath = activeModPath;
-    
+
     // Update the mod in config
-    const modIndex = config.mods.findIndex(m => m.id === mod.id);
+    const modIndex = config.mods.findIndex((m) => m.id === mod.id);
     if (modIndex !== -1) {
       config.mods[modIndex] = mod;
       await writeConfig(config);
     }
   }
-  
+
   return mod;
 }
 
@@ -157,47 +157,49 @@ async function importFromFolder(folderPath, character = null) {
   const modsDir = getManagerModsDir();
   const baseName = path.basename(folderPath);
   const characterDir = character ? path.join(modsDir, character) : modsDir;
-  
+
   // Check if the source folder exists
   if (!fs.existsSync(folderPath)) {
     throw new Error(`Source folder does not exist: ${folderPath}`);
   }
-  
+
   // Check for manifest.json in the source folder (optional)
-  const sourceManifestPath = path.join(folderPath, 'manifest.json');
+  const sourceManifestPath = path.join(folderPath, "manifest.json");
   if (!fs.existsSync(sourceManifestPath)) {
-    console.warn(`No manifest.json found in source folder: ${folderPath}. Using default values.`);
+    console.warn(
+      `No manifest.json found in source folder: ${folderPath}. Using default values.`
+    );
   }
-  
+
   if (character && !fs.existsSync(characterDir)) {
     fs.mkdirSync(characterDir, { recursive: true });
   }
-  
+
   const targetDir = path.join(characterDir, baseName);
   const uniqueDir = await uniqueDirectory(targetDir);
-  
+
   try {
     await copyDirectory(folderPath, uniqueDir);
     const mod = await registerMod(uniqueDir, character);
-    
+
     // Check if the mod is already in the active mods directory
     const config = await readConfig();
     const activeModsDir = getActiveModsDir(config.settings);
     const activeModPath = path.join(activeModsDir, path.basename(uniqueDir));
-    
+
     if (fs.existsSync(activeModPath)) {
       // If mod exists in active mods, update its state
       mod.enabled = true;
       mod.activePath = activeModPath;
-      
+
       // Update the mod in config
-      const modIndex = config.mods.findIndex(m => m.id === mod.id);
+      const modIndex = config.mods.findIndex((m) => m.id === mod.id);
       if (modIndex !== -1) {
         config.mods[modIndex] = mod;
         await writeConfig(config);
       }
     }
-    
+
     return mod;
   } catch (error) {
     // Clean up the directory if registration fails
@@ -298,8 +300,8 @@ async function buildModObject(modDir, manifest) {
     id: makeId(manifest?.name || modName),
     name: manifest?.name || modName,
     description: manifest?.description || `Mod: ${modName}`,
-    author: manifest?.author || 'Unknown',
-    version: manifest?.version || '1.0.0',
+    author: manifest?.author || "Unknown",
+    version: manifest?.version || "1.0.0",
     character: manifest?.character || null,
     dir: modDir,
     dateAdded: Date.now(),
@@ -310,15 +312,15 @@ async function buildModObject(modDir, manifest) {
 
 async function registerMod(modDir, character = null) {
   const manifest = await readManifest(modDir);
-  
+
   // If no manifest, create a default one using folder name
   const defaultManifest = {
     name: path.basename(modDir),
-    description: 'No manifest found',
-    author: 'Unknown',
-    version: '1.0.0'
+    description: "No manifest found",
+    author: "Unknown",
+    version: "1.0.0",
   };
-  
+
   const mod = await buildModObject(modDir, manifest || defaultManifest);
   mod.enabled = false;
   mod.activePath = null;
@@ -361,38 +363,56 @@ async function toggleMod(modId, turnOn) {
     const config = await readConfig();
     const idx = config.mods.findIndex((m) => m.id === modId);
     if (idx === -1) return { success: false, message: "Mod not found" };
-    
-    const mod = { ...config.mods[idx] }; // Create a copy to avoid direct mutation
+
+    // Work on a copy then persist back to config
+    const mod = { ...config.mods[idx] };
     const activeModsDir = getActiveModsDir(config.settings);
-    
+
+    // Ensure active mods dir exists
     if (!fs.existsSync(activeModsDir)) {
       await fsp.mkdir(activeModsDir, { recursive: true });
     }
 
-    const destDir = path.join(activeModsDir, path.basename(mod.dir));
+    const modFolderName = path.basename(mod.dir);
+    const destDir = path.join(activeModsDir, modFolderName);
 
     if (turnOn) {
-      // Only copy if not already in the active mods directory
-      if (!fs.existsSync(destDir)) {
-        await copyDirectory(mod.dir, destDir);
+      // Enable: copy the mod folder into the game's mods folder
+      // If there's an existing folder at dest, remove it first to avoid stale files
+      if (fs.existsSync(destDir)) {
+        await fsp.rm(destDir, { recursive: true, force: true });
       }
+
+      // Copy the manager mod directory (mod.dir) into the active mods dir
+      await copyDirectory(mod.dir, destDir);
+
       mod.activePath = destDir;
       mod.enabled = true;
     } else {
-      // Only remove if the mod is actually in the active mods directory
-      const pathToRemove = mod.activePath || destDir;
-      if (fs.existsSync(pathToRemove) && pathToRemove.startsWith(activeModsDir)) {
+      // Disable: remove the folder from the game's mods folder
+      // Prefer mod.activePath if valid, otherwise fall back to destDir
+      const pathToRemove =
+        mod.activePath && fs.existsSync(mod.activePath)
+          ? mod.activePath
+          : destDir;
+
+      if (
+        pathToRemove &&
+        fs.existsSync(pathToRemove) &&
+        pathToRemove.startsWith(activeModsDir)
+      ) {
         await fsp.rm(pathToRemove, { recursive: true, force: true });
       }
+
       mod.activePath = null;
       mod.enabled = false;
     }
 
-    // Update the mod in config
+    // Persist changes to config
     config.mods[idx] = mod;
     await writeConfig(config);
 
-    return { success: true, mod: { ...mod } }; // Return a copy of the updated mod
+    return { success: true, mod: { ...mod } };
   } catch (err) {
     console.error("Failed to toggle mod:", err);
     return { success: false, message: err?.message || "Unknown error" };
@@ -435,8 +455,8 @@ async function listModsEnriched() {
   // Get all character directories
   const dirEntries = await fsp.readdir(modsDir, { withFileTypes: true });
   const characterDirs = dirEntries
-    .filter(entry => entry.isDirectory())
-    .map(entry => path.join(modsDir, entry.name));
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => path.join(modsDir, entry.name));
 
   // Sync mods from each character directory
   let allMods = [];
@@ -452,7 +472,7 @@ async function listModsEnriched() {
   // Remove duplicates by directory path
   const uniqueMods = [];
   const seenDirs = new Set();
-  
+
   for (const mod of allMods) {
     if (!seenDirs.has(mod.dir)) {
       seenDirs.add(mod.dir);
@@ -468,19 +488,19 @@ async function syncModsFromDirectory(modsDir, config) {
 
   const existingMods = Array.isArray(config.mods) ? config.mods : [];
   const dirEntries = await fsp.readdir(modsDir, { withFileTypes: true });
-  
+
   // Get list of character directories (top-level directories in modsDir)
   const characterDirs = dirEntries
-    .filter(entry => entry.isDirectory())
-    .map(entry => entry.name);
-  
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => entry.name);
+
   // Get all mod directories (subdirectories within character directories)
   let modDirs = [];
   for (const entry of dirEntries) {
     if (entry.isDirectory()) {
       const fullPath = path.join(modsDir, entry.name);
       const subEntries = await fsp.readdir(fullPath, { withFileTypes: true });
-      
+
       for (const subEntry of subEntries) {
         if (subEntry.isDirectory()) {
           modDirs.push(path.join(fullPath, subEntry.name));
@@ -491,17 +511,25 @@ async function syncModsFromDirectory(modsDir, config) {
 
   const validMods = existingMods.filter((mod) => {
     // Only keep mods that exist and aren't character folders
-    return fs.existsSync(mod.dir) && 
-           !characterDirs.some(charDir => mod.dir.includes(path.join(modsDir, charDir, charDir)));
+    return (
+      fs.existsSync(mod.dir) &&
+      !characterDirs.some((charDir) =>
+        mod.dir.includes(path.join(modsDir, charDir, charDir))
+      )
+    );
   });
 
   const newMods = [];
   for (const modDir of modDirs) {
     // Skip if this is a character directory
-    if (characterDirs.some(charDir => modDir.includes(path.join(charDir, charDir)))) {
+    if (
+      characterDirs.some((charDir) =>
+        modDir.includes(path.join(charDir, charDir))
+      )
+    ) {
       continue;
     }
-    
+
     const existingMod = validMods.find((mod) => mod.dir === modDir);
     if (!existingMod) {
       try {

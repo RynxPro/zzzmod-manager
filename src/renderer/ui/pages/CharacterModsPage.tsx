@@ -89,35 +89,30 @@ const CharacterModsPage: React.FC = () => {
 
   const handleToggleMod = useCallback(async (modId: string, enabled: boolean) => {
     if (!charName) return;
+    
     try {
-      // Get the current mod to preserve its properties
-      const currentMod = mods.find(m => m.id === modId);
-      if (!currentMod) return;
-      
-      // Optimistically update the UI
-      setMods(prevMods => 
-        prevMods.map(mod => 
-          mod.id === modId 
-            ? { ...mod, enabled: enabled }
-            : mod
-        )
-      );
-      
-      // Toggle the mod in the backend
+      // Toggle the mod in the backend first
       const success = await window.electronAPI.mods.toggleMod(modId, enabled);
       if (!success) {
         throw new Error('Failed to toggle mod');
       }
       
-      // Refresh the mods list to ensure consistency
-      const updatedMods = await window.electronAPI.mods.listModsByCharacter(charName);
-      setMods(updatedMods);
+      // Only update the UI after successful toggle
+      setMods(prevMods => 
+        prevMods.map(mod => 
+          mod.id === modId 
+            ? { ...mod, enabled }
+            : mod
+        )
+      );
       
     } catch (err) {
       console.error("Failed to toggle mod:", err);
       setError(err instanceof Error ? err.message : "Failed to toggle mod");
       
-      // Revert the UI on error
+      // Refresh the mods list to ensure UI is in sync with backend
+      const updatedMods = await window.electronAPI.mods.listModsByCharacter(charName);
+      setMods(updatedMods);
       const freshMods = await window.electronAPI.mods.listModsByCharacter(charName);
       setMods(freshMods);
     }
