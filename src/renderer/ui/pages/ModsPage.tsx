@@ -45,14 +45,21 @@ export const ModsPage: FC<ModsPageProps> = ({ initialCharacter = null }) => {
 
   // Memoized values
   const availableCharacters = useMemo(() => {
-    if (!Array.isArray(mods)) return [];
-    const chars = new Set<string>();
+    if (!Array.isArray(mods) || mods.length === 0) return [];
+    
+    // Only include characters that have at least one mod
+    const charModCount = new Map<string, number>();
     mods.forEach((mod) => {
       if (mod?.character) {
-        chars.add(mod.character);
+        charModCount.set(mod.character, (charModCount.get(mod.character) || 0) + 1);
       }
     });
-    return Array.from(chars).sort();
+    
+    // Convert to array and sort
+    return Array.from(charModCount.entries())
+      .filter(([_, count]) => count > 0) // Only include characters with mods
+      .map(([char]) => char)
+      .sort();
   }, [mods]);
 
   const filteredAndSortedMods = useMemo(() => {
@@ -107,21 +114,31 @@ export const ModsPage: FC<ModsPageProps> = ({ initialCharacter = null }) => {
     });
   }, [mods, query, sortBy, sortDir, selectedCharacter]);
 
-  // Get all unique characters from the filtered mods
+  // Get all unique characters from the filtered mods that have mods in current search
   const filteredCharacters = useMemo(() => {
-    if (!Array.isArray(filteredAndSortedMods)) return [];
-    const chars = new Set<string>();
+    if (!Array.isArray(filteredAndSortedMods) || filteredAndSortedMods.length === 0) return [];
+    
+    const charModCount = new Map<string, number>();
     filteredAndSortedMods.forEach((mod) => {
       if (mod?.character) {
-        chars.add(mod.character);
+        charModCount.set(mod.character, (charModCount.get(mod.character) || 0) + 1);
       }
     });
-    return Array.from(chars).sort();
+    
+    // Only include characters that have at least one mod in current search
+    return Array.from(charModCount.entries())
+      .filter(([_, count]) => count > 0)
+      .map(([char]) => char)
+      .sort();
   }, [filteredAndSortedMods]);
 
-  // Reset selected character if it's no longer in available characters
+  // Ensure a character is always selected
   useEffect(() => {
-    if (selectedCharacter && !availableCharacters.includes(selectedCharacter) && availableCharacters.length > 0) {
+    if (availableCharacters.length > 0 && !selectedCharacter) {
+      setSelectedCharacter(availableCharacters[0]);
+    } else if (selectedCharacter && !availableCharacters.includes(selectedCharacter) && availableCharacters.length > 0) {
+      setSelectedCharacter(availableCharacters[0]);
+    } else if (availableCharacters.length > 0 && !selectedCharacter) {
       setSelectedCharacter(availableCharacters[0]);
     }
   }, [availableCharacters, selectedCharacter]);
@@ -421,17 +438,6 @@ export const ModsPage: FC<ModsPageProps> = ({ initialCharacter = null }) => {
 
         {/* Character Filter */}
         <div className="flex items-center space-x-4">
-          <button
-            onClick={() => setSelectedCharacter(null)}
-            className={`px-4 py-2 rounded-lg transition-colors ${
-              !selectedCharacter
-                ? "bg-gaming-accent-cyan text-gaming-bg font-medium"
-                : "bg-gaming-card hover:bg-gaming-card-hover"
-            }`}
-          >
-            All Characters
-          </button>
-
           {filteredCharacters.map((char) => (
             <button
               key={char}

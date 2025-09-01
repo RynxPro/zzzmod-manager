@@ -385,8 +385,35 @@ async function listModsEnriched() {
 
   if (!fs.existsSync(modsDir)) return [];
 
-  const items = await syncModsFromDirectory(modsDir, cfg);
-  return Array.isArray(items) ? items : [];
+  // Get all character directories
+  const dirEntries = await fsp.readdir(modsDir, { withFileTypes: true });
+  const characterDirs = dirEntries
+    .filter(entry => entry.isDirectory())
+    .map(entry => path.join(modsDir, entry.name));
+
+  // Sync mods from each character directory
+  let allMods = [];
+  for (const charDir of characterDirs) {
+    const mods = await syncModsFromDirectory(charDir, cfg);
+    allMods = [...allMods, ...mods];
+  }
+
+  // Also sync from the root mods directory for backward compatibility
+  const rootMods = await syncModsFromDirectory(modsDir, cfg);
+  allMods = [...allMods, ...rootMods];
+
+  // Remove duplicates by directory path
+  const uniqueMods = [];
+  const seenDirs = new Set();
+  
+  for (const mod of allMods) {
+    if (!seenDirs.has(mod.dir)) {
+      seenDirs.add(mod.dir);
+      uniqueMods.push(mod);
+    }
+  }
+
+  return uniqueMods;
 }
 
 async function syncModsFromDirectory(modsDir, config) {
@@ -394,14 +421,40 @@ async function syncModsFromDirectory(modsDir, config) {
 
   const existingMods = Array.isArray(config.mods) ? config.mods : [];
   const dirEntries = await fsp.readdir(modsDir, { withFileTypes: true });
-  const modDirs = dirEntries
-    .filter((entry) => entry.isDirectory())
-    .map((entry) => path.join(modsDir, entry.name));
+  
+  // Get list of character directories (top-level directories in modsDir)
+  const characterDirs = dirEntries
+    .filter(entry => entry.isDirectory())
+    .map(entry => entry.name);
+  
+  // Get all mod directories (subdirectories within character directories)
+  let modDirs = [];
+  for (const entry of dirEntries) {
+    if (entry.isDirectory()) {
+      const fullPath = path.join(modsDir, entry.name);
+      const subEntries = await fsp.readdir(fullPath, { withFileTypes: true });
+      
+      for (const subEntry of subEntries) {
+        if (subEntry.isDirectory()) {
+          modDirs.push(path.join(fullPath, subEntry.name));
+        }
+      }
+    }
+  }
 
-  const validMods = existingMods.filter((mod) => fs.existsSync(mod.dir));
+  const validMods = existingMods.filter((mod) => {
+    // Only keep mods that exist and aren't character folders
+    return fs.existsSync(mod.dir) && 
+           !characterDirs.some(charDir => mod.dir.includes(path.join(modsDir, charDir, charDir)));
+  });
 
   const newMods = [];
   for (const modDir of modDirs) {
+    // Skip if this is a character directory
+    if (characterDirs.some(charDir => modDir.includes(path.join(charDir, charDir)))) {
+      continue;
+    }
+    
     const existingMod = validMods.find((mod) => mod.dir === modDir);
     if (!existingMod) {
       try {
