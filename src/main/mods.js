@@ -75,13 +75,17 @@ async function listMods() {
 }
 
 async function listModsByCharacter(character) {
-  const characterDir = path.join(MANAGER_MODS_DIR, character);
+  // Normalize character name to lowercase for consistency
+  const normalizedCharacter = character ? character.toLowerCase() : null;
+  if (!normalizedCharacter) return [];
+  
+  const characterDir = path.join(MANAGER_MODS_DIR, normalizedCharacter);
   if (!fs.existsSync(characterDir)) {
     return [];
   }
 
-  const entries = await fsp.readdir(characterDir, { withFileTypes: true });
   const mods = [];
+  const entries = await fsp.readdir(characterDir, { withFileTypes: true });
 
   for (const entry of entries) {
     if (entry.isDirectory()) {
@@ -89,7 +93,8 @@ async function listModsByCharacter(character) {
       try {
         const manifest = await readManifest(modDir);
         const modObj = await buildModObject(modDir, manifest);
-        modObj.character = character;
+        // Use the normalized character name
+        modObj.character = normalizedCharacter;
         mods.push(modObj);
       } catch (err) {
         console.error(`Failed to build mod object for ${modDir}:`, err);
@@ -116,82 +121,83 @@ function getActiveModsDir(settings) {
 }
 
 async function importFromZip(zipPath, character = null) {
-  ensureDirs();
-  const cfg = await readConfig();
+  const extractDir = await extractZip(zipPath, { dir: app.getPath("temp") });
   const modsDir = getManagerModsDir();
-  const baseName = path.basename(zipPath, path.extname(zipPath));
-  const characterDir = character ? path.join(modsDir, character) : modsDir;
-  if (character && !fs.existsSync(characterDir))
-    fs.mkdirSync(characterDir, { recursive: true });
-  const targetDir = path.join(characterDir, baseName);
-  const uniqueDir = await uniqueDirectory(targetDir);
-  const zip = new AdmZip(zipPath);
-  zip.extractAllTo(uniqueDir, true);
+  await ensureDirs();
 
-  const mod = await registerMod(uniqueDir, character);
+  // Normalize character name to lowercase for consistency
+  const normalizedCharacter = character ? character.toLowerCase() : null;
 
-  // Check if the mod is already in the active mods directory
-  const config = await readConfig();
-  const activeModsDir = getActiveModsDir(config.settings);
-  const activeModPath = path.join(activeModsDir, path.basename(uniqueDir));
+  // If character is specified, create a subdirectory for them
+  const targetDir = normalizedCharacter
+    ? path.join(modsDir, normalizedCharacter)
+    : modsDir;
 
-  if (fs.existsSync(activeModPath)) {
-    // If mod exists in active mods, update its state
-    mod.enabled = true;
-    mod.activePath = activeModPath;
-
-    // Update the mod in config
-    const modIndex = config.mods.findIndex((m) => m.id === mod.id);
-    if (modIndex !== -1) {
-      config.mods[modIndex] = mod;
-      await writeConfig(config);
-    }
+  if (!fs.existsSync(targetDir)) {
+    await fsp.mkdir(targetDir, { recursive: true });
   }
 
+  // Copy the extracted files to the target directory
+  const modDir = await uniqueDirectory(targetDir);
+  await copyDirectory(extractDir, modDir);
+
+  // Clean up the extracted files
+  await fsp.rm(extractDir, { recursive: true, force: true });
+
+  // Register the mod with the normalized character name
+  const mod = await registerMod(modDir, normalizedCharacter);
   return mod;
 }
 
 async function importFromFolder(folderPath, character = null) {
-  ensureDirs();
-  const cfg = await readConfig();
-  const modsDir = getManagerModsDir();
-  const baseName = path.basename(folderPath);
-  const characterDir = character ? path.join(modsDir, character) : modsDir;
-
-  // Check if the source folder exists
-  if (!fs.existsSync(folderPath)) {
-    throw new Error(`Source folder does not exist: ${folderPath}`);
-  }
-
-  // Check for manifest.json in the source folder (optional)
-  const sourceManifestPath = path.join(folderPath, "manifest.json");
-  if (!fs.existsSync(sourceManifestPath)) {
-    console.warn(
-      `No manifest.json found in source folder: ${folderPath}. Using default values.`
-    );
-  }
-
-  if (character && !fs.existsSync(characterDir)) {
-    fs.mkdirSync(characterDir, { recursive: true });
-  }
-
-  const targetDir = path.join(characterDir, baseName);
-  const uniqueDir = await uniqueDirectory(targetDir);
-
+  let modDir;
   try {
-    await copyDirectory(folderPath, uniqueDir);
-    const mod = await registerMod(uniqueDir, character);
+    await ensureDirs();
+    const modsDir = getManagerModsDir();
+    
+    // Check if source folder exists
+    if (!fs.existsSync(folderPath)) {
+      throw new Error(`Source folder does not exist: ${folderPath}`);
+    }
 
+    // Check for manifest.json in the source folder (optional)
+    const sourceManifestPath = path.join(folderPath, "manifest.json");
+    if (!fs.existsSync(sourceManifestPath)) {
+      console.warn(
+        `No manifest.json found in source folder: ${folderPath}. Using default values.`
+      );
+    }
+
+    // Normalize character name to lowercase for consistency
+    const normalizedCharacter = character ? character.toLowerCase() : null;
+    
+    // If character is specified, create a subdirectory for them
+    const targetDir = normalizedCharacter
+      ? path.join(modsDir, normalizedCharacter)
+      : modsDir;
+
+    if (!fs.existsSync(targetDir)) {
+      await fsp.mkdir(targetDir, { recursive: true });
+    }
+
+    // Create a unique directory for the mod
+    modDir = await uniqueDirectory(path.join(targetDir, path.basename(folderPath)));
+    
+    // Copy the folder contents to the target directory
+    await copyDirectory(folderPath, modDir);
+
+    // Register the mod with the normalized character name
+    const mod = await registerMod(modDir, normalizedCharacter);
+    
     // Check if the mod is already in the active mods directory
     const config = await readConfig();
     const activeModsDir = getActiveModsDir(config.settings);
-    const activeModPath = path.join(activeModsDir, path.basename(uniqueDir));
-
+    const activeModPath = path.join(activeModsDir, path.basename(modDir));
+    
     if (fs.existsSync(activeModPath)) {
-      // If mod exists in active mods, update its state
       mod.enabled = true;
       mod.activePath = activeModPath;
-
+      
       // Update the mod in config
       const modIndex = config.mods.findIndex((m) => m.id === mod.id);
       if (modIndex !== -1) {
@@ -199,14 +205,15 @@ async function importFromFolder(folderPath, character = null) {
         await writeConfig(config);
       }
     }
-
+    
     return mod;
   } catch (error) {
     // Clean up the directory if registration fails
-    if (fs.existsSync(uniqueDir)) {
-      await fsp.rm(uniqueDir, { recursive: true, force: true });
+    if (modDir && fs.existsSync(modDir)) {
+      await fsp.rm(modDir, { recursive: true, force: true });
     }
-    throw error; // Re-throw the error after cleanup
+    console.error('Error in importFromFolder:', error);
+    throw error; // Re-throw the error to be handled by the caller
   }
 }
 
@@ -296,13 +303,16 @@ async function computeDirectorySizeBytes(dir) {
 
 async function buildModObject(modDir, manifest) {
   const modName = path.basename(modDir);
+  // Normalize character name to lowercase for consistency
+  const normalizedCharacter = manifest?.character ? manifest.character.toLowerCase() : null;
+  
   return {
     id: makeId(manifest?.name || modName),
     name: manifest?.name || modName,
     description: manifest?.description || `Mod: ${modName}`,
     author: manifest?.author || "Unknown",
     version: manifest?.version || "1.0.0",
-    character: manifest?.character || null,
+    character: normalizedCharacter,
     dir: modDir,
     dateAdded: Date.now(),
     sizeBytes: await computeDirectorySizeBytes(modDir),
@@ -325,9 +335,12 @@ async function registerMod(modDir, character = null) {
   mod.enabled = false;
   mod.activePath = null;
 
+  // Normalize character name to lowercase for consistency
+  const normalizedCharacter = character ? character.toLowerCase() : null;
+  
   // Set character if provided
-  if (character) {
-    mod.character = character;
+  if (normalizedCharacter) {
+    mod.character = normalizedCharacter;
   }
 
   const config = await readConfig();
@@ -335,18 +348,17 @@ async function registerMod(modDir, character = null) {
 
   if (existingIndex >= 0) {
     // Update existing mod
+    const existingMod = config.mods[existingIndex];
     config.mods[existingIndex] = {
-      ...config.mods[existingIndex],
+      ...existingMod,
       ...mod,
-      // Preserve enabled state, activePath, and character if not being updated
-      enabled: config.mods[existingIndex].enabled,
-      activePath: config.mods[existingIndex].activePath,
-      character:
-        character !== null
-          ? character
-          : config.mods[existingIndex].character || null,
+      // Preserve enabled state and activePath
+      enabled: existingMod.enabled,
+      activePath: existingMod.activePath,
+      // Only update character if explicitly provided and different
+      character: normalizedCharacter !== null ? normalizedCharacter : existingMod.character
     };
-    mod.enabled = config.mods[existingIndex].enabled;
+    mod.enabled = existingMod.enabled;
     mod.activePath = config.mods[existingIndex].activePath;
     mod.character = config.mods[existingIndex].character;
   } else {
@@ -456,27 +468,39 @@ async function listModsEnriched() {
   const dirEntries = await fsp.readdir(modsDir, { withFileTypes: true });
   const characterDirs = dirEntries
     .filter((entry) => entry.isDirectory())
-    .map((entry) => path.join(modsDir, entry.name));
+    .map((entry) => ({
+      path: path.join(modsDir, entry.name),
+      name: entry.name.toLowerCase() // Normalize directory names to lowercase
+    }));
 
   // Sync mods from each character directory
   let allMods = [];
-  for (const charDir of characterDirs) {
+  for (const { path: charDir, name: charName } of characterDirs) {
     const mods = await syncModsFromDirectory(charDir, cfg);
-    allMods = [...allMods, ...mods];
+    // Ensure all mods have the correct character name from their directory
+    const normalizedMods = mods.map(mod => ({
+      ...mod,
+      character: mod.character || charName // Use directory name as fallback for character
+    }));
+    allMods = [...allMods, ...normalizedMods];
   }
 
   // Also sync from the root mods directory for backward compatibility
   const rootMods = await syncModsFromDirectory(modsDir, cfg);
   allMods = [...allMods, ...rootMods];
 
-  // Remove duplicates by directory path
+  // Remove duplicates by directory path and normalize character names
   const uniqueMods = [];
   const seenDirs = new Set();
 
   for (const mod of allMods) {
     if (!seenDirs.has(mod.dir)) {
       seenDirs.add(mod.dir);
-      uniqueMods.push(mod);
+      // Ensure character name is normalized
+      uniqueMods.push({
+        ...mod,
+        character: mod.character ? mod.character.toLowerCase() : null
+      });
     }
   }
 

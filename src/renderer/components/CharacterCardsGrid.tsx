@@ -16,9 +16,27 @@ const CharacterCardsGrid: React.FC<CharacterCardsGridProps> = ({
   const [searchQuery, setSearchQuery] = useState("");
 
   const charactersWithStats = useMemo(() => {
-    return characters.map((char) => {
-      const modsForChar = mods.filter((m) => m.character === char.name);
-      const activeMods = modsForChar.filter((m) => m.enabled).length;
+    // Create a map of lowercase character names to their original case
+    const characterNameMap = new Map(
+      characters.map(char => [char.name.toLowerCase(), char.name])
+    );
+    
+    // Group mods by character name (case-insensitive)
+    const modsByChar = new Map<string, ModItem[]>();
+    
+    mods.forEach(mod => {
+      if (!mod.character) return;
+      
+      const lowerCharName = mod.character.toLowerCase();
+      const existingMods = modsByChar.get(lowerCharName) || [];
+      modsByChar.set(lowerCharName, [...existingMods, mod]);
+    });
+    
+    return characters.map(char => {
+      const lowerCharName = char.name.toLowerCase();
+      const modsForChar = modsByChar.get(lowerCharName) || [];
+      const activeMods = modsForChar.filter(m => m.enabled).length;
+      
       return {
         ...char,
         total: modsForChar.length,
