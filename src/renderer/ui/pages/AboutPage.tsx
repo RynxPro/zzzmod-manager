@@ -21,7 +21,7 @@ const AboutPage: React.FC = () => {
         </motion.div>
 
         <h1 className="text-4xl font-bold text-moon-text mb-3">
-          ZZZ Mod Manager
+          MoonLight Manager
         </h1>
         <p className="text-moon-muted text-lg max-w-md mx-auto">
           A futuristic mod management experience for Zenless Zone Zero

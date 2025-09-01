@@ -58,7 +58,7 @@ function createMainWindow() {
     y: winState.y,
     minWidth: 900,
     minHeight: 600,
-    title: "ZZZ Mod Manager",
+    title: "MoonLight Manager",
     webPreferences: {
       preload: preloadPath,
       contextIsolation: true,
@@ -243,7 +243,7 @@ safeIpcHandle("settings:backup", async () => {
     .replace(/[:.]/g, "-")
     .replace("T", "_")
     .slice(0, 19);
-  const backupDir = path.join(destRoot, `ZZZModManager_Backup_${stamp}`);
+  const backupDir = path.join(destRoot, `MoonLightManager_Backup_${stamp}`);
 
   const srcDir = paths.DATA_DIR;
 

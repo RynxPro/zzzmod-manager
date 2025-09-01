@@ -1,7 +1,7 @@
 {
-  "name": "zzzmod-manager",
+  "name": "moonlight-manager",
   "version": "0.1.0",
-  "description": "ZZZ Mod Manager - Electron + React + Tailwind",
+  "description": "MoonLight Manager - Electron + React + Tailwind",
   "main": "src/main/main.js",
   "type": "module",
   "scripts": {
