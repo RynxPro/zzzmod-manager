@@ -127,7 +127,28 @@ async function importFromZip(zipPath, character = null) {
   const uniqueDir = await uniqueDirectory(targetDir);
   const zip = new AdmZip(zipPath);
   zip.extractAllTo(uniqueDir, true);
-  return await registerMod(uniqueDir, character);
+  
+  const mod = await registerMod(uniqueDir, character);
+  
+  // Check if the mod is already in the active mods directory
+  const config = await readConfig();
+  const activeModsDir = getActiveModsDir(config.settings);
+  const activeModPath = path.join(activeModsDir, path.basename(uniqueDir));
+  
+  if (fs.existsSync(activeModPath)) {
+    // If mod exists in active mods, update its state
+    mod.enabled = true;
+    mod.activePath = activeModPath;
+    
+    // Update the mod in config
+    const modIndex = config.mods.findIndex(m => m.id === mod.id);
+    if (modIndex !== -1) {
+      config.mods[modIndex] = mod;
+      await writeConfig(config);
+    }
+  }
+  
+  return mod;
 }
 
 async function importFromFolder(folderPath, character = null) {
@@ -157,7 +178,27 @@ async function importFromFolder(folderPath, character = null) {
   
   try {
     await copyDirectory(folderPath, uniqueDir);
-    return await registerMod(uniqueDir, character);
+    const mod = await registerMod(uniqueDir, character);
+    
+    // Check if the mod is already in the active mods directory
+    const config = await readConfig();
+    const activeModsDir = getActiveModsDir(config.settings);
+    const activeModPath = path.join(activeModsDir, path.basename(uniqueDir));
+    
+    if (fs.existsSync(activeModPath)) {
+      // If mod exists in active mods, update its state
+      mod.enabled = true;
+      mod.activePath = activeModPath;
+      
+      // Update the mod in config
+      const modIndex = config.mods.findIndex(m => m.id === mod.id);
+      if (modIndex !== -1) {
+        config.mods[modIndex] = mod;
+        await writeConfig(config);
+      }
+    }
+    
+    return mod;
   } catch (error) {
     // Clean up the directory if registration fails
     if (fs.existsSync(uniqueDir)) {
@@ -320,32 +361,38 @@ async function toggleMod(modId, turnOn) {
     const config = await readConfig();
     const idx = config.mods.findIndex((m) => m.id === modId);
     if (idx === -1) return { success: false, message: "Mod not found" };
-    const mod = config.mods[idx];
-
+    
+    const mod = { ...config.mods[idx] }; // Create a copy to avoid direct mutation
     const activeModsDir = getActiveModsDir(config.settings);
-    if (!fs.existsSync(activeModsDir))
+    
+    if (!fs.existsSync(activeModsDir)) {
       await fsp.mkdir(activeModsDir, { recursive: true });
+    }
 
     const destDir = path.join(activeModsDir, path.basename(mod.dir));
 
     if (turnOn) {
-      // Enable: copy folder to zzmi/mods if not already present
-      if (!fs.existsSync(destDir)) await copyDirectory(mod.dir, destDir);
+      // Only copy if not already in the active mods directory
+      if (!fs.existsSync(destDir)) {
+        await copyDirectory(mod.dir, destDir);
+      }
       mod.activePath = destDir;
       mod.enabled = true;
     } else {
-      // Disable: remove from zzmi/mods using activePath or fallback to computed path
+      // Only remove if the mod is actually in the active mods directory
       const pathToRemove = mod.activePath || destDir;
-      if (fs.existsSync(pathToRemove))
+      if (fs.existsSync(pathToRemove) && pathToRemove.startsWith(activeModsDir)) {
         await fsp.rm(pathToRemove, { recursive: true, force: true });
+      }
       mod.activePath = null;
       mod.enabled = false;
     }
 
+    // Update the mod in config
     config.mods[idx] = mod;
     await writeConfig(config);
 
-    return { success: true, mod };
+    return { success: true, mod: { ...mod } }; // Return a copy of the updated mod
   } catch (err) {
     console.error("Failed to toggle mod:", err);
     return { success: false, message: err?.message || "Unknown error" };

@@ -6,12 +6,19 @@ export interface ModItem {
   description: string;
   enabled: boolean;
   dir: string;
+  activePath?: string | null;
   character?: string;
   dateAdded?: number;
   sizeBytes?: number;
   thumbnailPath?: string | null;
   appliedFiles?: string[];
   hasConflict?: boolean;
+}
+
+export interface ToggleModResult {
+  success: boolean;
+  message?: string;
+  mod?: ModItem;
 }
 
 export type ImportState = "idle" | "importing" | "success" | "error";
