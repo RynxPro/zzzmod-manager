@@ -26,6 +26,7 @@ declare global {
     // List mods
     listLibrary: () => Promise<ModItem[]>;
     listActive: () => Promise<ModItem[]>;
+    listModsByCharacter: (character: string) => Promise<ModItem[]>;
 
     // Mod management
     toggleMod: (id: string, turnOn: boolean) => Promise<boolean>;

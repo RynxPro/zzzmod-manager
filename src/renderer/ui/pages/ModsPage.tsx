@@ -20,6 +20,7 @@ import { useToast, ToastContainer } from "../components/Toast";
 import CharacterSelectDialog from "../../components/CharacterSelectDialog";
 
 interface ModsPageProps {
+  mods?: ModItem[];
   initialCharacter?: string | null;
 }
 
