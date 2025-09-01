@@ -139,15 +139,15 @@ const CharacterModsPage: React.FC = () => {
 
   if (!charName) {
     return (
-      <div className="p-6 text-white">
+      <div className="p-6 text-moon-text">
         <button
           onClick={() => navigate("/characters")}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-800 hover:bg-gray-700 transition-colors duration-200"
+          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-moon-surface/80 border border-white/5 hover:border-white/10 hover:shadow-moonGlowCyan transition-colors duration-200"
         >
-          <FiArrowLeft className="text-neon-cyan" />
+          <FiArrowLeft className="text-moon-accent" />
           Back to Characters
         </button>
-        <div className="mt-4 p-4 bg-red-900/30 border border-red-500/50 rounded-lg text-red-300">
+        <div className="mt-4 p-4 bg-red-900/30 border border-red-500/40 rounded-lg text-red-300">
           Error: Character name is missing
         </div>
       </div>
@@ -159,12 +159,12 @@ const CharacterModsPage: React.FC = () => {
       <div className="p-6">
         <button
           onClick={() => navigate("/characters")}
-          className="px-3 py-2 rounded-xl bg-gray-700 text-white hover:bg-gray-600 mb-4 transition-all duration-200 hover:bg-opacity-80"
+          className="px-3 py-2 rounded-xl bg-moon-surface/80 text-moon-text border border-white/5 hover:border-white/10 mb-4 transition-all duration-200 hover:shadow-moonGlowCyan"
         >
           ← Back to Characters
         </button>
         <div className="flex items-center space-x-2">
-          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-500"></div>
+          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-moon-accent"></div>
           <span>Loading {charName}'s mods...</span>
         </div>
       </div>
@@ -176,28 +176,28 @@ const CharacterModsPage: React.FC = () => {
       <div className="p-6">
         <button
           onClick={() => navigate("/characters")}
-          className="px-3 py-2 rounded-xl bg-gray-700 text-white hover:bg-gray-600 mb-4"
+          className="px-3 py-2 rounded-xl bg-moon-surface/80 text-moon-text border border-white/5 hover:border-white/10 mb-4"
         >
           ← Back to Characters
         </button>
-        <div className="text-red-500">Error: {error}</div>
+        <div className="text-red-400">Error: {error}</div>
       </div>
     );
   }
 
   return (
-    <div className="p-6 text-white">
+    <div className="p-6 text-moon-text">
       <div className="flex items-center mb-8">
         <motion.button
           onClick={() => navigate("/characters")}
           whileHover={{ x: -2 }}
           whileTap={{ scale: 0.98 }}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-800 hover:bg-gray-700 transition-colors duration-200"
+          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-moon-surface/80 border border-white/5 hover:border-white/10 hover:shadow-moonGlowCyan transition-colors duration-200"
         >
-          <FiArrowLeft className="text-neon-cyan" />
+          <FiArrowLeft className="text-moon-accent" />
           Back to Characters
         </motion.button>
-        <h1 className="text-3xl font-bold ml-4 bg-gradient-to-r from-neon-cyan to-neon-purple bg-clip-text text-transparent">
+        <h1 className="text-3xl font-bold ml-4 bg-gradient-to-r from-moon-glowCyan to-moon-glowViolet bg-clip-text text-transparent">
           {charName}'s Mods
         </h1>
       </div>
@@ -210,7 +210,7 @@ const CharacterModsPage: React.FC = () => {
         >
           <button
             onClick={handleUploadFolder}
-            className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-neon-purple to-neon-pink rounded-xl hover:opacity-90 transition-all duration-200 shadow-lg shadow-neon-purple/20"
+            className="flex items-center gap-2 px-6 py-3 rounded-xl bg-moon-surface/80 border border-white/5 hover:border-white/10 hover:shadow-moonGlowViolet transition-all duration-200"
           >
             <FiFolderPlus className="text-xl" />
             <span className="font-medium">Import Mod Folder</span>
@@ -219,16 +219,16 @@ const CharacterModsPage: React.FC = () => {
 
         {isLoading ? (
           <div className="flex justify-center items-center h-64">
-            <div className="animate-pulse text-neon-cyan">Loading mods...</div>
+            <div className="animate-pulse text-moon-accent">Loading mods...</div>
           </div>
         ) : error ? (
-          <div className="p-4 bg-red-900/30 border border-red-500/50 rounded-lg text-red-300">
+          <div className="p-4 bg-red-900/30 border border-red-500/40 rounded-lg text-red-300">
             {error}
           </div>
         ) : mods.length === 0 ? (
-          <div className="text-center py-12 bg-gray-800/50 rounded-xl border border-gray-700/50">
-            <p className="text-gray-400">No mods installed for {charName} yet.</p>
-            <p className="text-sm text-gray-500 mt-2">Click 'Import Mod Folder' to add mods</p>
+          <div className="text-center py-12 bg-moon-surface/70 rounded-xl border border-white/5">
+            <p className="text-moon-muted">No mods installed for {charName} yet.</p>
+            <p className="text-sm text-moon-muted mt-2">Click 'Import Mod Folder' to add mods</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">

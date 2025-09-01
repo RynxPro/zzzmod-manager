@@ -61,14 +61,14 @@ const CharacterCardsGrid: React.FC<CharacterCardsGridProps> = ({
       {/* Search Bar */}
       <div className="relative max-w-md mx-auto">
         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-          <Search className="h-5 w-5 text-gray-400" />
+          <Search className="h-5 w-5 text-moon-muted" />
         </div>
         <input
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Search characters..."
-          className="block w-full pl-10 pr-3 py-2 rounded-full bg-gray-800/80 text-white placeholder-gray-400 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent shadow-sm hover:shadow-md transition-all duration-200"
+          className="block w-full pl-10 pr-3 py-2 rounded-full bg-moon-surface/70 text-moon-text placeholder-moon-muted border border-white/5 focus:outline-none focus:ring-2 focus:ring-moon-accent focus:border-transparent shadow-sm hover:shadow-moonGlowCyan transition-all duration-200"
           aria-label="Search characters"
         />
       </div>
@@ -89,9 +89,9 @@ const CharacterCardsGrid: React.FC<CharacterCardsGridProps> = ({
         </div>
       ) : (
         <div className="text-center py-12">
-          <p className="text-gray-400 text-lg">
+          <p className="text-moon-muted text-lg">
             No characters found matching "
-            <span className="text-white">{searchQuery}</span>"
+            <span className="text-moon-text">{searchQuery}</span>"
           </p>
         </div>
       )}

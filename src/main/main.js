@@ -1,8 +1,10 @@
 import { app, BrowserWindow, shell, ipcMain, dialog, Menu } from "electron";
 import path from "node:path";
+import fs from "node:fs";
+import fsp from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import Store from "electron-store";
-import { api as modsApi, getManagerModsDir } from "./mods.js";
+import { api as modsApi, getManagerModsDir, paths } from "./mods.js";
 
 const store = new Store();
 
@@ -229,6 +231,69 @@ safeIpcHandle("settings:chooseModsDir", async () => {
   const dir = res.filePaths[0];
   await modsApi.setSettings({ modsDir: dir });
   return dir;
+});
+
+// Backup app data directory into a timestamped folder in a user-selected destination
+safeIpcHandle("settings:backup", async () => {
+  const res = await dialog.showOpenDialog({ properties: ["openDirectory", "createDirectory"] });
+  if (res.canceled || res.filePaths.length === 0) return { success: false, canceled: true };
+  const destRoot = res.filePaths[0];
+  const stamp = new Date()
+    .toISOString()
+    .replace(/[:.]/g, "-")
+    .replace("T", "_")
+    .slice(0, 19);
+  const backupDir = path.join(destRoot, `ZZZModManager_Backup_${stamp}`);
+
+  const srcDir = paths.DATA_DIR;
+
+  async function copyDir(src, dest) {
+    const stat = await fsp.stat(src);
+    if (stat.isDirectory()) {
+      await fsp.mkdir(dest, { recursive: true });
+      const entries = await fsp.readdir(src, { withFileTypes: true });
+      for (const entry of entries) {
+        const s = path.join(src, entry.name);
+        const d = path.join(dest, entry.name);
+        if (entry.isDirectory()) {
+          await copyDir(s, d);
+        } else if (entry.isSymbolicLink()) {
+          const link = await fsp.readlink(s);
+          await fsp.symlink(link, d);
+        } else if (entry.isFile()) {
+          await fsp.copyFile(s, d);
+        }
+      }
+    } else {
+      await fsp.copyFile(src, dest);
+    }
+  }
+
+  try {
+    await copyDir(srcDir, backupDir);
+    return { success: true, path: backupDir };
+  } catch (err) {
+    console.error("Backup failed:", err);
+    return { success: false, error: err?.message || "Backup failed" };
+  }
+});
+
+// Reset app data: remove data directory and re-create minimal structure
+safeIpcHandle("settings:resetApp", async () => {
+  try {
+    const dataDir = paths.DATA_DIR;
+    if (fs.existsSync(dataDir)) {
+      await fsp.rm(dataDir, { recursive: true, force: true });
+    }
+    // Recreate by triggering mods API to ensure dirs
+    getManagerModsDir();
+    // Also clear recent folders
+    store.set("recentFolders", []);
+    return { success: true };
+  } catch (err) {
+    console.error("Reset failed:", err);
+    return { success: false, error: err?.message || "Reset failed" };
+  }
 });
 
 // --- Graceful App Quit ---

@@ -13,7 +13,7 @@ body,
 }
 
 body {
-  @apply font-sans text-gaming-text-primary bg-gaming-bg-primary;
+  @apply font-sans text-moon-text bg-moon-bg;
   font-feature-settings: "liga" 1, "kern" 1;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -26,16 +26,16 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  @apply bg-gaming-bg-secondary;
+  @apply bg-moon-surface;
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-gaming-accent-cyan/30 rounded-full;
+  @apply bg-moon-glowCyan/30 rounded-full;
   transition: background-color 0.2s ease;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  @apply bg-gaming-accent-cyan/50;
+  @apply bg-moon-glowCyan/50;
 }
 
 /* Gaming UI utilities */
@@ -54,7 +54,7 @@ body {
   }
 
   .glass-panel {
-    @apply bg-gaming-bg-card/80 backdrop-blur-gaming border border-white/10;
+    @apply bg-moon-surface/80 backdrop-blur-gaming border border-white/10;
   }
 
   .gaming-button {
@@ -63,12 +63,12 @@ body {
   }
 
   .gaming-button-primary {
-    @apply gaming-button bg-gradient-to-r from-gaming-accent-cyan to-gaming-accent-violet;
-    @apply text-gaming-bg-primary shadow-glow hover:shadow-glowPurple;
+    @apply gaming-button bg-gradient-to-r from-moon-glowCyan to-moon-glowViolet;
+    @apply text-moon-bg shadow-moonGlowCyan hover:shadow-moonGlowViolet;
   }
 
   .gaming-button-secondary {
-    @apply gaming-button glass-panel text-gaming-text-primary;
-    @apply hover:bg-gaming-bg-overlay/80 hover:shadow-glass;
+    @apply gaming-button glass-panel text-moon-text;
+    @apply hover:bg-moon-surface/90 hover:shadow-glass;
   }
 }

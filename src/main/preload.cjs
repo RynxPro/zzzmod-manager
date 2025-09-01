@@ -20,6 +20,8 @@ contextBridge.exposeInMainWorld("electronAPI", {
     get: () => ipcRenderer.invoke("settings:get"),
     set: (partial) => ipcRenderer.invoke("settings:set", partial),
     chooseModsDir: () => ipcRenderer.invoke("settings:chooseModsDir"),
+    backup: () => ipcRenderer.invoke("settings:backup"),
+    resetApp: () => ipcRenderer.invoke("settings:resetApp"),
   },
   recentFolders: {
     get: () => ipcRenderer.invoke("recentFolders:get"),

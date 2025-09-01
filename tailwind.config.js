@@ -42,6 +42,18 @@ export default {
             warning: '#f59e0b',
           }
         },
+        // Moon theme palette for MoonLight Manager (Zenless Zone Zero moon vibes)
+        moon: {
+          bg: "#0a0f1c", // deep navy night
+          surface: "#141a2a", // slightly lighter for cards
+          glowViolet: "#7a5af8", // neon violet glow
+          glowCyan: "#4dd0e1", // cyan glow
+          accent: "#9c6eff", // main accent
+          on: "#4ade80", // glowing green (ON)
+          off: "#f87171", // muted red (OFF)
+          text: "#e4e9f5", // soft white text
+          muted: "#8a92b2", // muted secondary text
+        },
         // Keep existing neon colors for compatibility
         neon: {
           cyan: "#00f5ff",
@@ -61,6 +73,9 @@ export default {
         glowPurple: "0 0 0 1px rgba(139, 92, 246, 0.3), 0 0 20px rgba(139, 92, 246, 0.15), 0 4px 32px rgba(139, 92, 246, 0.1)",
         glowMagenta: "0 0 0 1px rgba(244, 113, 181, 0.3), 0 0 20px rgba(244, 113, 181, 0.15), 0 4px 32px rgba(244, 113, 181, 0.1)",
         glowViolet: "0 0 0 1px rgba(168, 85, 247, 0.3), 0 0 20px rgba(168, 85, 247, 0.15), 0 4px 32px rgba(168, 85, 247, 0.1)",
+        // Moon theme glows (cyan/violet accent)
+        moonGlowCyan: "0 0 0 1px rgba(77, 208, 225, 0.35), 0 0 24px rgba(77, 208, 225, 0.18), 0 6px 36px rgba(77, 208, 225, 0.12)",
+        moonGlowViolet: "0 0 0 1px rgba(122, 90, 248, 0.35), 0 0 24px rgba(122, 90, 248, 0.18), 0 6px 36px rgba(122, 90, 248, 0.12)",
         // Card shadows
         cardGlow: "0 4px 32px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.05)",
         cardHover: "0 8px 64px rgba(0, 245, 255, 0.1), 0 0 0 1px rgba(0, 245, 255, 0.2)",
@@ -76,6 +91,10 @@ export default {
         'gradient-gaming': 'linear-gradient(135deg, rgba(0, 245, 255, 0.1) 0%, rgba(139, 92, 246, 0.1) 50%, rgba(244, 113, 181, 0.1) 100%)',
         'gradient-card': 'linear-gradient(145deg, rgba(30, 30, 46, 0.8) 0%, rgba(37, 37, 56, 0.6) 100%)',
         'gradient-sidebar': 'linear-gradient(180deg, rgba(10, 10, 15, 0.95) 0%, rgba(16, 16, 24, 0.9) 100%)',
+        // Moon gradients
+        'gradient-moon': 'linear-gradient(135deg, rgba(77, 208, 225, 0.10) 0%, rgba(122, 90, 248, 0.10) 100%)',
+        'gradient-moon-card': 'linear-gradient(145deg, rgba(20, 26, 42, 0.85) 0%, rgba(20, 26, 42, 0.65) 100%)',
+        'gradient-moon-sidebar': 'linear-gradient(180deg, rgba(10, 15, 28, 0.95) 0%, rgba(20, 26, 42, 0.92) 100%)',
       },
       animation: {
         'pulse-glow': 'pulse-glow 2s ease-in-out infinite',

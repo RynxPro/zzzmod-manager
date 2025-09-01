@@ -56,9 +56,17 @@ declare global {
   interface SettingsAPI {
     get: () => Promise<AppSettings>;
     set: (partial: Partial<AppSettings>) => Promise<AppSettings>;
-    chooseGameDir: () => Promise<string | null>;
     chooseModsDir: () => Promise<string | null>;
-    clearBackups: () => Promise<boolean>;
+    backup: () => Promise<{
+      success: boolean;
+      canceled?: boolean;
+      path?: string;
+      error?: string;
+    }>;
+    resetApp: () => Promise<{
+      success: boolean;
+      error?: string;
+    }>;
   }
 
   interface Window {

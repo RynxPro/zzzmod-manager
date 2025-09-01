@@ -7,6 +7,7 @@ const SettingsPage: React.FC = () => {
   const { success, error } = useToast();
   const [modsDir, setModsDir] = React.useState<string>("");
   const [saving, setSaving] = React.useState<boolean>(false);
+  const [busy, setBusy] = React.useState<boolean>(false);
 
   // Load settings on mount, retry if electronAPI is not yet ready
   React.useEffect(() => {
@@ -66,6 +67,47 @@ const SettingsPage: React.FC = () => {
 
   const canBrowse = Boolean(window.electronAPI?.settings?.chooseModsDir);
 
+  const backupData = async () => {
+    if (!window.electronAPI?.settings?.backup) return;
+    setBusy(true);
+    try {
+      const res = await window.electronAPI.settings.backup();
+      if (res?.canceled) return;
+      if (res?.success) {
+        success("Backup complete", res.path || "Backup created successfully.");
+      } else {
+        error("Backup failed", res?.error || "Unknown error");
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      error("Backup failed", msg);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const resetApp = async () => {
+    if (!window.electronAPI?.settings?.resetApp) return;
+    const confirmed = window.confirm(
+      "This will clear all app data (mods database, config). Your actual game mods folder is unaffected. Continue?"
+    );
+    if (!confirmed) return;
+    setBusy(true);
+    try {
+      const res = await window.electronAPI.settings.resetApp();
+      if (res?.success) {
+        success("App reset", "Data cleared. Please restart the app.");
+      } else {
+        error("Reset failed", res?.error || "Unknown error");
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      error("Reset failed", msg);
+    } finally {
+      setBusy(false);
+    }
+  };
+
   return (
     <div className="p-8 space-y-6">
       {/* Header */}
@@ -74,12 +116,8 @@ const SettingsPage: React.FC = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
       >
-        <h1 className="text-3xl font-bold text-gaming-text-primary mb-2">
-          Settings
-        </h1>
-        <p className="text-gaming-text-secondary">
-          Configure your mod manager preferences
-        </p>
+        <h1 className="text-3xl font-bold text-moon-text mb-2">Settings</h1>
+        <p className="text-moon-muted">Configure your mod manager preferences</p>
       </motion.div>
 
       {/* Settings Panel */}
@@ -91,15 +129,15 @@ const SettingsPage: React.FC = () => {
       >
         {/* Mods Directory */}
         <div className="space-y-3">
-          <label className="flex items-center gap-2 text-sm font-medium text-gaming-text-primary">
-            <SettingsIcon size={16} className="text-gaming-accent-violet" />
+          <label className="flex items-center gap-2 text-sm font-medium text-moon-text">
+            <SettingsIcon size={16} className="text-moon-accent" />
             ZZMI Mods Folder
           </label>
           <div className="flex gap-3">
             <input
               value={modsDir}
               onChange={(e) => setModsDir(e.target.value)}
-              className="flex-1 px-4 py-3 rounded-xl bg-gaming-bg-card/60 border border-gaming-border-accent/30 text-sm font-medium placeholder:text-gaming-text-muted focus:outline-none focus:border-gaming-accent-cyan/50 focus:shadow-glow transition-all duration-300"
+              className="flex-1 px-4 py-3 rounded-xl bg-moon-surface/70 border border-white/5 text-sm font-medium placeholder:text-moon-muted text-moon-text focus:outline-none focus:ring-2 focus:ring-moon-accent focus:border-transparent hover:shadow-moonGlowCyan transition-all duration-300"
               placeholder="Select your ZZMI mods folder"
             />
             <motion.button
@@ -122,7 +160,7 @@ const SettingsPage: React.FC = () => {
         </div>
 
         {/* Save Button */}
-        <div className="flex items-center gap-3 pt-4 border-t border-gaming-border-accent/30">
+        <div className="flex items-center gap-3 pt-4 border-t border-white/5">
           <motion.button
             onClick={save}
             disabled={saving}
@@ -132,6 +170,29 @@ const SettingsPage: React.FC = () => {
           >
             <Save size={16} />
             {saving ? "Saving..." : "Save Settings"}
+          </motion.button>
+        </div>
+        {/* Maintenance actions */}
+        <div className="grid sm:grid-cols-2 gap-3">
+          <motion.button
+            onClick={backupData}
+            disabled={busy}
+            className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-moon-surface/80 border border-white/5 text-moon-text hover:border-white/10 hover:shadow-moonGlowCyan disabled:opacity-50 transition-all"
+            whileHover={{ scale: busy ? 1 : 1.02 }}
+            whileTap={{ scale: busy ? 1 : 0.98 }}
+          >
+            <FolderOpen size={16} />
+            Backup Data
+          </motion.button>
+          <motion.button
+            onClick={resetApp}
+            disabled={busy}
+            className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-red-900/40 border border-red-500/30 text-red-200 hover:bg-red-800/50 hover:shadow-[0_0_12px_rgba(239,68,68,0.25)] disabled:opacity-50 transition-all"
+            whileHover={{ scale: busy ? 1 : 1.02 }}
+            whileTap={{ scale: busy ? 1 : 0.98 }}
+          >
+            <SettingsIcon size={16} />
+            Reset App
           </motion.button>
         </div>
       </motion.div>
