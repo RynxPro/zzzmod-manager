@@ -22,7 +22,9 @@ const CharactersPage: React.FC = () => {
       } catch (err) {
         console.error("Failed to fetch mods:", err);
         if (isMounted) {
-          setError(err instanceof Error ? err.message : "Failed to load characters");
+          setError(
+            err instanceof Error ? err.message : "Failed to load characters"
+          );
         }
       } finally {
         if (isMounted) {
@@ -73,10 +75,7 @@ const CharactersPage: React.FC = () => {
   return (
     <div className="p-6">
       <h1 className="text-3xl font-bold mb-6">Characters</h1>
-      <CharacterCardsGrid
-        mods={mods}
-        onSelect={handleCharacterSelect}
-      />
+      <CharacterCardsGrid mods={mods} onSelect={handleCharacterSelect} />
     </div>
   );
 };

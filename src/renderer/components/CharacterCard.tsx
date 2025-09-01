@@ -15,7 +15,6 @@ const CharacterCard: React.FC<CharacterCardProps> = ({
   activeMods = 0,
   onClick,
 }) => {
-
   return (
     <div
       className="group cursor-pointer relative bg-gaming-bg-card/90 rounded-xl p-5 flex flex-col items-center hover:-translate-y-1 transition-all duration-300 backdrop-blur-sm hover:bg-gradient-to-br hover:from-gaming-accent-blue/5 hover:to-gaming-accent-violet/5 hover:shadow-[0_4px_20px_-5px_rgba(59,130,246,0.2)]"
@@ -40,9 +39,11 @@ const CharacterCard: React.FC<CharacterCardProps> = ({
           {name}
         </h3>
       </div>
-      <p className="text-xs px-3 py-1.5 bg-gaming-bg-overlay/50 text-gaming-text-secondary rounded-full shadow-sm transition-all duration-300
+      <p
+        className="text-xs px-3 py-1.5 bg-gaming-bg-overlay/50 text-gaming-text-secondary rounded-full shadow-sm transition-all duration-300
          group-hover:bg-gradient-to-r group-hover:from-gaming-accent-blue/10 group-hover:to-gaming-accent-violet/10 
-         group-hover:text-gaming-text-primary group-hover:border group-hover:border-gaming-accent-blue/40">
+         group-hover:text-gaming-text-primary group-hover:border group-hover:border-gaming-accent-blue/40"
+      >
         {totalMods} mods installed
       </p>
     </div>
