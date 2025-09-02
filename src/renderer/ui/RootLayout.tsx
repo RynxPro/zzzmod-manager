@@ -1,7 +1,7 @@
 import React from "react";
 import { NavLink, useLocation, Outlet } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Users, Settings, Info, Gamepad2 } from "lucide-react";
+import { Users, Settings, Info, Gamepad2, Layers } from "lucide-react";
 import TopBar from "./components/TopBar";
 
 const IconNavItem: React.FC<{ to: string; label: string; icon: React.ReactNode }> = ({ to, label, icon }) => {
@@ -58,6 +58,7 @@ const RootLayout: React.FC = () => {
           {/* Nav icons */}
           <nav className="flex flex-col items-center gap-3">
             <IconNavItem to="/characters" label="Characters" icon={<Users size={18} />} />
+            <IconNavItem to="/presets" label="Presets" icon={<Layers size={18} />} />
             <IconNavItem to="/settings" label="Settings" icon={<Settings size={18} />} />
             <IconNavItem to="/about" label="About" icon={<Info size={18} />} />
           </nav>

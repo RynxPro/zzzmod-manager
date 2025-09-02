@@ -203,7 +203,7 @@ const CharacterModsPage: React.FC = () => {
       </div>
       
       <div className="space-y-6">
-        <motion.div 
+                <motion.div 
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           className="inline-block"

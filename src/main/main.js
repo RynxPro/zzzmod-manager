@@ -195,6 +195,12 @@ safeIpcHandle("mods:enable", async (_e, id) => modsApi.toggleMod(id, true));
 safeIpcHandle("mods:disable", async (_e, id) => modsApi.toggleMod(id, false));
 safeIpcHandle("mods:deleteMod", async (_e, id) => modsApi.deleteMod(id));
 
+// Preset handlers
+safeIpcHandle("mods:listPresets", async () => modsApi.listPresets());
+safeIpcHandle("mods:savePreset", async (_e, name) => modsApi.savePreset(name));
+safeIpcHandle("mods:applyPreset", async (_e, name) => modsApi.applyPreset(name));
+safeIpcHandle("mods:deletePreset", async (_e, name) => modsApi.deletePreset(name));
+
 // Import handlers with character support
 safeIpcHandle("mods:importZip", async (_e, filePath, character = null) => {
   return modsApi.importFromZip(filePath, character);

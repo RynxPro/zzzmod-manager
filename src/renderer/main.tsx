@@ -8,6 +8,7 @@ import SettingsPage from "./ui/pages/SettingsPage";
 import AboutPage from "./ui/pages/AboutPage";
 import CharactersPage from "./ui/pages/CharactersPage";
 import CharacterModsPage from "./ui/pages/CharacterModsPage";
+import PresetsPage from "./ui/pages/PresetsPage";
 
 const router = createBrowserRouter([
   {
@@ -17,6 +18,7 @@ const router = createBrowserRouter([
       { index: true, element: <CharactersPage /> },
       { path: "characters", element: <CharactersPage /> },
       { path: "characters/:charName", element: <CharacterModsPage /> },
+      { path: "presets", element: <PresetsPage /> },
       { path: "mods", element: <ModsPage /> },
       { path: "settings", element: <SettingsPage /> },
       { path: "about", element: <AboutPage /> },

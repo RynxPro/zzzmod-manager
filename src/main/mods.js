@@ -593,6 +593,85 @@ async function listLibrary() {
   return listModsEnriched();
 }
 
+const PRESETS_PATH = path.join(DATA_DIR, "presets.json");
+
+async function readPresets() {
+  try {
+    const raw = await fsp.readFile(PRESETS_PATH, "utf-8");
+    return JSON.parse(raw);
+  } catch (err) {
+    if (err?.code === "ENOENT") {
+      return [];
+    }
+    throw err;
+  }
+}
+
+async function writePresets(presets) {
+  await fsp.writeFile(PRESETS_PATH, JSON.stringify(presets, null, 2), "utf-8");
+}
+
+async function listPresets() {
+  return readPresets();
+}
+
+async function savePreset(name) {
+  const activeMods = await listActive();
+  const presets = await readPresets();
+  const newPreset = {
+    name,
+    mods: activeMods.map((mod) => mod.id),
+  };
+
+  const existingIndex = presets.findIndex((p) => p.name === name);
+  if (existingIndex >= 0) {
+    presets[existingIndex] = newPreset;
+  } else {
+    presets.push(newPreset);
+  }
+
+  await writePresets(presets);
+  return newPreset;
+}
+
+async function applyPreset(presetName) {
+  const presets = await readPresets();
+  const preset = presets.find((p) => p.name === presetName);
+  if (!preset) {
+    throw new Error(`Preset "${presetName}" not found.`);
+  }
+
+  const config = await readConfig();
+  const allMods = config.mods || [];
+  const missingMods = [];
+
+  // First, disable all mods to ensure a clean slate
+  for (const mod of allMods) {
+    if (mod.enabled) {
+      await toggleMod(mod.id, false);
+    }
+  }
+
+  // Then, enable mods from the preset
+  for (const modId of preset.mods) {
+    const modExists = allMods.some((m) => m.id === modId);
+    if (modExists) {
+      await toggleMod(modId, true);
+    } else {
+      missingMods.push(modId);
+    }
+  }
+
+  return { success: true, missingMods };
+}
+
+async function deletePreset(presetName) {
+  let presets = await readPresets();
+  presets = presets.filter((p) => p.name !== presetName);
+  await writePresets(presets);
+  return { success: true };
+}
+
 export const api = {
   listMods: listModsEnriched,
   listLibrary,
@@ -604,4 +683,8 @@ export const api = {
   deleteMod,
   getSettings,
   setSettings,
+  listPresets,
+  savePreset,
+  applyPreset,
+  deletePreset,
 };
