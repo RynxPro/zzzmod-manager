@@ -1,47 +1,93 @@
 import React from "react";
+import { FiZap } from "react-icons/fi";
 
 interface CharacterCardProps {
   name: string;
   imageUrl: string;
   totalMods?: number;
   activeMods?: number;
+  isActive?: boolean;
   onClick?: () => void;
 }
+
+const StatBadge: React.FC<{ value: number; label: string; isActive?: boolean }> = ({ 
+  value, 
+  label,
+  isActive = false 
+}) => (
+  <div className={`px-2.5 py-1 rounded-full text-xs font-medium flex items-center gap-1.5
+    ${isActive 
+      ? 'bg-gradient-to-r from-moon-glowCyan/20 to-moon-glowViolet/20 text-moon-glowCyan border border-moon-glowCyan/30'
+      : 'bg-moon-surface/40 text-moon-text/80 border border-white/5'}`}
+  >
+    <span className="font-bold">{value}</span>
+    <span>{label}</span>
+  </div>
+);
 
 const CharacterCard: React.FC<CharacterCardProps> = ({
   name,
   imageUrl,
   totalMods = 0,
   activeMods = 0,
+  isActive = false,
   onClick,
 }) => {
   return (
     <div
-      className="group cursor-pointer relative bg-moon-surface/80 rounded-2xl p-5 flex flex-col items-center hover:-translate-y-1 transition-all duration-300 backdrop-blur-gaming border border-white/5 hover:border-white/10 hover:shadow-moonGlowCyan"
+      className={`relative flex flex-col items-center p-4 rounded-2xl transition-all duration-300
+        ${isActive 
+          ? 'bg-gradient-to-br from-moon-surface/70 to-moon-surface/50 shadow-lg shadow-moon-glowCyan/10' 
+          : 'bg-moon-surface/40 hover:bg-moon-surface/60'}
+        ${onClick ? 'cursor-pointer hover:shadow-md hover:shadow-moon-glowViolet/10' : ''}
+        border ${isActive ? 'border-moon-glowCyan/30' : 'border-white/5'}`}
       onClick={onClick}
-      role="button"
-      tabIndex={0}
+      role={onClick ? 'button' : undefined}
+      tabIndex={onClick ? 0 : -1}
       onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") onClick?.();
+        if (onClick && (e.key === "Enter" || e.key === " ")) {
+          e.preventDefault();
+          onClick();
+        }
       }}
-      aria-label={`${name}: ${activeMods} of ${totalMods} mods active`}
+      aria-label={`${name}: ${activeMods} active of ${totalMods} total mods`}
     >
-      <div className="relative mb-4 group-hover:scale-105 transition-transform duration-300">
-        <div className="absolute inset-0 rounded-full bg-gradient-to-br from-moon-glowCyan/25 to-moon-glowViolet/25 blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+      {/* Active indicator ring */}
+      {isActive && (
+        <div className="absolute -inset-0.5 rounded-2xl bg-gradient-to-r from-moon-glowCyan/30 to-moon-glowViolet/30 blur-sm -z-10" />
+      )}
+
+      {/* Character portrait */}
+      <div className="relative w-20 h-20 mb-3">
+        <div className={`absolute inset-0 rounded-full ${isActive ? 'bg-gradient-to-br from-moon-glowCyan/30 to-moon-glowViolet/30' : 'bg-moon-surface/30'} blur-sm`} />
         <img
           src={imageUrl}
           alt={name}
-          className="relative z-10 w-24 h-24 rounded-full object-cover shadow-md group-hover:shadow-moonGlowViolet transition-all duration-300 transform -scale-y-100"
+          className="relative w-full h-full rounded-full object-cover border-2 border-white/5 transform -scale-y-100"
+          onError={(e) => {
+            const target = e.target as HTMLImageElement;
+            target.src = '/default-character.png';
+          }}
         />
       </div>
-      <div className="relative">
-        <h3 className="text-lg font-semibold text-moon-text mb-1 text-center tracking-wide">
-          {name}
-        </h3>
+
+      {/* Character name */}
+      <h3 className="text-base font-semibold text-moon-text text-center mb-2.5">
+        {name}
+      </h3>
+
+      {/* Mod stats */}
+      <div className="flex gap-2">
+        <StatBadge 
+          value={totalMods} 
+          label="Total" 
+        />
+        <StatBadge 
+          value={activeMods} 
+          label="Active" 
+          isActive={activeMods > 0}
+        />
       </div>
-      <p className="text-xs px-3 py-1.5 rounded-full bg-moon-surface/70 text-moon-muted border border-white/5 group-hover:text-moon-text group-hover:border-white/10 transition-colors">
-        {totalMods} mods, {activeMods} on
-      </p>
     </div>
   );
 };
