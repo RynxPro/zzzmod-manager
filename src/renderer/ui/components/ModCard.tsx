@@ -15,8 +15,15 @@ import {
 import { ModItem } from '../types/mods';
 import { useToast } from './Toast';
 
+// Define a more specific type for the mod prop in ModCard
+interface ModCardModItem extends Omit<ModItem, 'onToggle' | 'onDelete' | 'onFavorite' | 'viewMode' | 'className'> {
+  thumbnail?: string;
+  conflict?: boolean;
+  isFavorite: boolean;
+}
+
 interface ModCardProps {
-  mod: ModItem;
+  mod: ModCardModItem;
   isSelected?: boolean;
   onToggle: (id: string, enabled: boolean) => Promise<void>;
   onDelete: (id: string) => void;
@@ -66,7 +73,17 @@ const ModCard: React.FC<ModCardProps> = ({
   const handleOpenFolder = async (e: React.MouseEvent) => {
     e.stopPropagation();
     try {
-      await window.electronAPI.mods.openModFolder(mod.id);
+      // Check if the method exists before calling it
+      if (window.electronAPI?.mods?.openModFolder) {
+        await window.electronAPI.mods.openModFolder(mod.id);
+      } else {
+        console.warn('openModFolder method not available in electronAPI.mods');
+        // Fallback to showing the mod's install path if available
+        if (mod.installPath) {
+          // You can implement a platform-specific way to open the folder here
+          console.log('Mod install path:', mod.installPath);
+        }
+      }
     } catch (err) {
       console.error('Error opening mod folder:', err);
       error('Failed to open mod folder');
