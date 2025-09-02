@@ -37,11 +37,9 @@ const CharacterModsPage: React.FC = () => {
 
   useEffect(() => {
     let isMounted = true;
-    let needsRefresh = true;
     
     const fetchMods = async () => {
-      if (!charName || !needsRefresh) return;
-      needsRefresh = false;
+      if (!charName) return;
       
       try {
         setIsLoading(true);
@@ -63,16 +61,11 @@ const CharacterModsPage: React.FC = () => {
         setMods(modsWithState);
         setError(null);
       } catch (err) {
-        if (!isMounted) return;
         console.error("Failed to fetch mods:", err);
         setError(err instanceof Error ? err.message : "Failed to load mods");
       } finally {
         if (isMounted) {
           setIsLoading(false);
-          // Set a timeout to allow the next refresh after 30 seconds
-          setTimeout(() => {
-            needsRefresh = true;
-          }, 30000);
         }
       }
     };
@@ -80,18 +73,9 @@ const CharacterModsPage: React.FC = () => {
     // Initial fetch
     fetchMods();
     
-    // Set up a more efficient refresh mechanism
-    const refreshInterval = setInterval(() => {
-      if (document.visibilityState === 'visible') {
-        needsRefresh = true;
-        fetchMods();
-      }
-    }, 30000); // Check every 30 seconds if we need to refresh
-    
-    // Also refresh when the tab becomes visible
+    // Only refresh when the tab becomes visible again
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
-        needsRefresh = true;
         fetchMods();
       }
     };
@@ -100,7 +84,6 @@ const CharacterModsPage: React.FC = () => {
     
     return () => {
       isMounted = false;
-      clearInterval(refreshInterval);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, [charName]); // Only depend on charName
