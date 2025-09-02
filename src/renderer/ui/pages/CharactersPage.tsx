@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import { FolderOpen, Upload } from "lucide-react";
 import CharacterCardsGrid from "../../components/CharacterCardsGrid";
 import { ModItem } from "../types/mods";
 import CharacterSelectDialog from "../../components/CharacterSelectDialog";
@@ -157,16 +158,40 @@ const CharactersPage: React.FC = () => {
   }
 
   return (
-    <div
-      className="relative p-6"
+    <div 
+      className="relative min-h-screen p-6"
       onDragOver={onDragOver}
       onDragEnter={onDragEnter}
       onDragLeave={onDragLeave}
       onDrop={onDrop}
     >
       <ToastContainer toasts={toasts} onDismiss={dismissToast} />
-      <h1 className="text-3xl font-bold mb-6">Characters</h1>
-      <CharacterCardsGrid mods={mods} onSelect={handleCharacterSelect} />
+      <div className="max-w-6xl mx-auto">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-3xl font-bold">Characters</h1>
+          <div className="text-sm text-gaming-text-secondary flex items-center">
+            <span className="mr-2">Drag & drop mods here</span>
+            <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-gaming-accent-cyan/20 text-gaming-accent-cyan text-xs">?</span>
+          </div>
+        </div>
+        
+        <div className="relative">
+          <CharacterCardsGrid mods={mods} onSelect={handleCharacterSelect} />
+          
+          {!isLoading && mods.length === 0 && (
+            <div className="text-center py-12 border-2 border-dashed border-gaming-border/50 rounded-xl mt-4">
+              <FolderOpen className="mx-auto h-12 w-12 text-gaming-text-secondary mb-4" />
+              <h3 className="text-lg font-medium text-gaming-text-primary">No mods found</h3>
+              <p className="mt-2 text-gaming-text-secondary">
+                Drag and drop mod files or folders here to get started
+              </p>
+              <p className="text-xs text-gaming-text-secondary/70 mt-2">
+                Supports .zip archives or mod folders
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
 
       {importState === "drag" && (
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-lg border-2 border-dashed border-gaming-accent-cyan/60 bg-gaming-bg/70">

@@ -43,11 +43,14 @@ const CharacterSelectDialog: React.FC<CharacterSelectDialogProps> = ({ isOpen, o
                 }`}
               >
                 <div className="relative w-16 h-16 mb-2">
-                  <img
-                    src={char.imageUrl}
-                    alt={char.name}
-                    className="w-full h-full object-cover rounded-full"
-                  />
+                  <div className="w-full h-full rounded-full overflow-hidden">
+                    <img
+                      src={char.imageUrl}
+                      alt={char.name}
+                      className="w-full h-full object-cover"
+                      style={{ transform: 'rotate(180deg)' }}
+                    />
+                  </div>
                 </div>
                 <span className="text-sm font-medium text-gaming-text-primary">
                   {char.name}
