@@ -58,23 +58,20 @@ const CharactersPage: React.FC = () => {
     navigate(`/characters/${encodeURIComponent(charName)}`);
   };
 
-  // Drag & Drop Handlers
+  // Drag & Drop Handlers - Simplified to only handle the drop event
   const onDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
-    if (importState !== "drag") setImportState("drag");
-  }, [importState]);
+  }, []);
 
   const onDragEnter = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
-    setImportState("drag");
   }, []);
 
   const onDragLeave = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
-    setImportState("idle");
   }, []);
 
   const onDrop = useCallback(async (e: React.DragEvent<HTMLDivElement>) => {
@@ -169,38 +166,17 @@ const CharactersPage: React.FC = () => {
       <div className="max-w-6xl mx-auto">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold">Characters</h1>
-          <div className="text-sm text-gaming-text-secondary flex items-center">
-            <span className="mr-2">Drag & drop mods here</span>
-            <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-gaming-accent-cyan/20 text-gaming-accent-cyan text-xs">?</span>
+          <div className="flex items-center gap-2 text-sm text-gaming-text-secondary/70">
+            <Upload className="w-4 h-4" />
+            <span>Drag & drop mods anywhere to import</span>
           </div>
         </div>
         
         <div className="relative">
           <CharacterCardsGrid mods={mods} onSelect={handleCharacterSelect} />
-          
-          {!isLoading && mods.length === 0 && (
-            <div className="text-center py-12 border-2 border-dashed border-gaming-border/50 rounded-xl mt-4">
-              <FolderOpen className="mx-auto h-12 w-12 text-gaming-text-secondary mb-4" />
-              <h3 className="text-lg font-medium text-gaming-text-primary">No mods found</h3>
-              <p className="mt-2 text-gaming-text-secondary">
-                Drag and drop mod files or folders here to get started
-              </p>
-              <p className="text-xs text-gaming-text-secondary/70 mt-2">
-                Supports .zip archives or mod folders
-              </p>
-            </div>
-          )}
         </div>
       </div>
 
-      {importState === "drag" && (
-        <div className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-lg border-2 border-dashed border-gaming-accent-cyan/60 bg-gaming-bg/70">
-          <div className="pointer-events-none text-center">
-            <p className="text-lg text-gaming-text-primary">Drop a mod .zip or folder to import</p>
-            <p className="text-sm text-gaming-text-secondary">You'll pick a character next</p>
-          </div>
-        </div>
-      )}
 
       <CharacterSelectDialog
         isOpen={showCharSelect}

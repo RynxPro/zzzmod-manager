@@ -1,6 +1,8 @@
 export interface Character {
   id: string;
   name: string;
+  imageUrl: string;
+  aliases?: string[];
   element?: string;
   rarity?: number;
   avatar?: string;
