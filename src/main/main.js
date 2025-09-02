@@ -217,6 +217,10 @@ safeIpcHandle("mods:chooseZip", async () => {
   if (res.canceled || res.filePaths.length === 0) return null;
   return res.filePaths[0];
 });
+safeIpcHandle("mods:showItemInFolder", async (_e, filePath) => {
+  return modsApi.showItemInFolder(filePath);
+});
+
 safeIpcHandle("mods:chooseFolder", async () => {
   const res = await dialog.showOpenDialog({ properties: ["openDirectory"] });
   if (res.canceled || res.filePaths.length === 0) return null;

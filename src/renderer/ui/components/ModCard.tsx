@@ -16,10 +16,11 @@ import { ModItem } from '../types/mods';
 import { useToast } from './Toast';
 
 // Define a more specific type for the mod prop in ModCard
-interface ModCardModItem extends Omit<ModItem, 'onToggle' | 'onDelete' | 'onFavorite' | 'viewMode' | 'className'> {
+interface ModCardModItem extends ModItem {
   thumbnail?: string;
   conflict?: boolean;
   isFavorite: boolean;
+  installPath?: string;
 }
 
 interface ModCardProps {
@@ -73,22 +74,21 @@ const ModCard: React.FC<ModCardProps> = ({
   const handleOpenFolder = async (e: React.MouseEvent) => {
     e.stopPropagation();
     try {
-      // Check if the method exists before calling it
-      if (window.electronAPI?.mods?.openModFolder) {
-        await window.electronAPI.mods.openModFolder(mod.id);
-      } else {
-        console.warn('openModFolder method not available in electronAPI.mods');
-        // Fallback to showing the mod's install path if available
-        if (mod.installPath) {
-          // You can implement a platform-specific way to open the folder here
-          console.log('Mod install path:', mod.installPath);
+      if (mod.installPath) {
+        const result = await window.electronAPI.mods.showItemInFolder(mod.installPath);
+        if (!result?.success) {
+          throw new Error(result?.error || 'Failed to open folder');
         }
+      } else {
+        throw new Error('No install path available for this mod');
       }
-    } catch (err) {
+    } catch (err: unknown) {
       console.error('Error opening mod folder:', err);
-      error('Failed to open mod folder');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to open mod folder';
+      error(errorMessage);
+    } finally {
+      setIsMenuOpen(false);
     }
-    setIsMenuOpen(false);
   };
 
   const getStatusBadge = () => {

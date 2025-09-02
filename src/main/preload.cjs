@@ -19,6 +19,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
     savePreset: (name) => ipcRenderer.invoke("mods:savePreset", name),
     applyPreset: (name) => ipcRenderer.invoke("mods:applyPreset", name),
     deletePreset: (name) => ipcRenderer.invoke("mods:deletePreset", name),
+    showItemInFolder: (path) => ipcRenderer.invoke("mods:showItemInFolder", path),
   },
   settings: {
     get: () => ipcRenderer.invoke("settings:get"),

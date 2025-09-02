@@ -1,12 +1,13 @@
 export interface ModItem {
   id: string;
   name: string;
-  version: string;
-  author: string;
-  description: string;
+  version?: string;
+  author?: string;
+  description?: string;
   enabled: boolean;
   dir: string;
   activePath?: string | null;
+  installPath?: string;
   character?: string;
   dateAdded?: number;
   sizeBytes?: number;

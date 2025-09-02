@@ -11,6 +11,7 @@ declare interface Window {
       importFolder: (folderPath: string, character?: string | null) => Promise<ModItem>;
       chooseZip: () => Promise<string | null>;
       chooseFolder: () => Promise<string | null>;
+      showItemInFolder: (path: string) => Promise<{ success: boolean; error?: string }>;
     };
     settings: {
       get: () => Promise<AppSettings>;

@@ -47,6 +47,7 @@ declare global {
     ) => Promise<ModItem>;
     chooseZip: () => Promise<string | null>;
     chooseFolder: () => Promise<string | null>;
+    showItemInFolder: (path: string) => Promise<{ success: boolean; error?: string }>;
 
     // Preset management
     listPresets: () => Promise<{ name: string; mods: string[] }[]>;

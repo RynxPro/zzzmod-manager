@@ -18,7 +18,7 @@ async function listActive() {
 import fs from "node:fs";
 import fsp from "node:fs/promises";
 import path from "node:path";
-import { app } from "electron";
+import { app, shell } from "electron";
 import crypto from "node:crypto";
 import AdmZip from "adm-zip";
 
@@ -687,4 +687,13 @@ export const api = {
   savePreset,
   applyPreset,
   deletePreset,
+  showItemInFolder: (filePath) => {
+    try {
+      shell.showItemInFolder(path.normalize(filePath));
+      return { success: true };
+    } catch (error) {
+      console.error('Error showing item in folder:', error);
+      return { success: false, error: error.message };
+    }
+  }
 };
