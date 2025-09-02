@@ -106,6 +106,13 @@ export const ToastContainer: React.FC<ToastContainerProps> = ({
   );
 };
 
+type ToastOptions = {
+  title: string;
+  message?: string;
+  type?: ToastType;
+  duration?: number;
+};
+
 // Toast hook for easy usage
 export const useToast = () => {
   const [toasts, setToasts] = React.useState<Toast[]>([]);
@@ -120,22 +127,34 @@ export const useToast = () => {
   }, []);
 
   const success = React.useCallback(
-    (title: string, message?: string) => {
-      addToast({ type: "success", title, message });
+    (titleOrOptions: string | ToastOptions, message?: string) => {
+      if (typeof titleOrOptions === 'string') {
+        addToast({ type: "success", title: titleOrOptions, message });
+      } else {
+        addToast({ type: "success", ...titleOrOptions });
+      }
     },
     [addToast]
   );
 
   const error = React.useCallback(
-    (title: string, message?: string) => {
-      addToast({ type: "error", title, message });
+    (titleOrOptions: string | ToastOptions, message?: string) => {
+      if (typeof titleOrOptions === 'string') {
+        addToast({ type: "error", title: titleOrOptions, message });
+      } else {
+        addToast({ type: "error", ...titleOrOptions });
+      }
     },
     [addToast]
   );
 
   const warning = React.useCallback(
-    (title: string, message?: string) => {
-      addToast({ type: "warning", title, message });
+    (titleOrOptions: string | ToastOptions, message?: string) => {
+      if (typeof titleOrOptions === 'string') {
+        addToast({ type: "warning", title: titleOrOptions, message });
+      } else {
+        addToast({ type: "warning", ...titleOrOptions });
+      }
     },
     [addToast]
   );
