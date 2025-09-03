@@ -10,8 +10,9 @@ import {
   FiFilter,
   FiRefreshCw,
   FiDownload,
-  FiStar,
+  FiSave,
   FiCheckCircle,
+  FiPower,
 } from "react-icons/fi";
 import { Button } from "../../components/ui/Button";
 import { cn } from "../../../lib/utils";
@@ -32,6 +33,7 @@ const DashboardPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [greeting, setGreeting] = useState("");
+  const [presets, setPresets] = useState<{name: string, mods: string[]}[]>([]);
 
   // Generate time-based greeting
   useEffect(() => {
@@ -42,6 +44,19 @@ const DashboardPage: React.FC = () => {
       return "Good Evening Master";
     };
     setGreeting(getTimeBasedGreeting());
+  }, []);
+
+  // Fetch presets
+  useEffect(() => {
+    const fetchPresets = async () => {
+      try {
+        const presetList = await window.electronAPI.mods.listPresets();
+        setPresets(presetList);
+      } catch (err) {
+        console.error('Failed to fetch presets:', err);
+      }
+    };
+    fetchPresets();
   }, []);
 
   useEffect(() => {
@@ -255,16 +270,16 @@ const DashboardPage: React.FC = () => {
             color="text-green-400"
           />
           <StatCard
-            icon={<FiStar className="w-5 h-5" />}
-            label="Favorites"
-            value={stats.favorites}
-            color="text-yellow-400"
+            icon={<FiPower className="w-5 h-5" />}
+            label="Inactive"
+            value={mods.filter(mod => !mod.enabled).length}
+            color="text-blue-400"
           />
           <StatCard
-            icon={<FiDownload className="w-5 h-5" />}
-            label="Available"
-            value={mods.length}
-            color="text-blue-400"
+            icon={<FiSave className="w-5 h-5" />}
+            label="Presets"
+            value={presets.length}
+            color="text-yellow-400"
           />
         </div>
 
