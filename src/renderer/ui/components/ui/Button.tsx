@@ -9,12 +9,13 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: 'bg-moon-accent text-moon-bg hover:bg-moon-accent/90',
-        destructive: 'bg-red-500 text-white hover:bg-red-600',
-        outline: 'border border-moon-surface/30 bg-transparent hover:bg-moon-surface/20',
-        secondary: 'bg-moon-surface/50 text-moon-text hover:bg-moon-surface/70',
-        ghost: 'hover:bg-moon-surface/30 hover:text-moon-text',
-        link: 'underline-offset-4 hover:underline text-moon-accent',
+        default: "bg-gaming-accent-cyan text-gaming-bg hover:bg-gaming-accent-cyan/90",
+        accent: "bg-gradient-to-r from-moon-glowViolet to-moon-glowCyan text-moon-bg hover:opacity-90",
+        destructive: "bg-gaming-status-error text-white hover:bg-gaming-status-error/90",
+        outline: "border border-gaming-border bg-transparent hover:bg-gaming-bg-overlay/50",
+        secondary: "bg-gaming-bg-overlay/50 text-gaming-text-primary hover:bg-gaming-bg-overlay/70",
+        ghost: "hover:bg-gaming-bg-overlay/50",
+        link: "text-gaming-accent-cyan underline-offset-4 hover:underline",
       },
       size: {
         default: 'h-10 py-2 px-4',
