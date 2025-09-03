@@ -22,7 +22,7 @@ export interface ModItem {
   onToggle?: (id: string, enabled: boolean) => Promise<void>;
   onDelete?: (id: string) => void;
   onFavorite?: (id: string, favorite: boolean) => void;
-  viewMode?: 'grid' | 'list';
+  viewMode?: "grid" | "list";
   className?: string;
 }
 

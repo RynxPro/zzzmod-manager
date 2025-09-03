@@ -54,15 +54,18 @@ export const ModsPage: FC<ModsPageProps> = ({ initialCharacter = null }) => {
   // Memoized values
   const availableCharacters = useMemo(() => {
     if (!Array.isArray(mods) || mods.length === 0) return [];
-    
+
     // Only include characters that have at least one mod
     const charModCount = new Map<string, number>();
     mods.forEach((mod) => {
       if (mod?.character) {
-        charModCount.set(mod.character, (charModCount.get(mod.character) || 0) + 1);
+        charModCount.set(
+          mod.character,
+          (charModCount.get(mod.character) || 0) + 1
+        );
       }
     });
-    
+
     // Convert to array and sort
     return Array.from(charModCount.entries())
       .filter(([_, count]) => count > 0) // Only include characters with mods
@@ -124,15 +127,22 @@ export const ModsPage: FC<ModsPageProps> = ({ initialCharacter = null }) => {
 
   // Get all unique characters from the filtered mods that have mods in current search
   const filteredCharacters = useMemo(() => {
-    if (!Array.isArray(filteredAndSortedMods) || filteredAndSortedMods.length === 0) return [];
-    
+    if (
+      !Array.isArray(filteredAndSortedMods) ||
+      filteredAndSortedMods.length === 0
+    )
+      return [];
+
     const charModCount = new Map<string, number>();
     filteredAndSortedMods.forEach((mod) => {
       if (mod?.character) {
-        charModCount.set(mod.character, (charModCount.get(mod.character) || 0) + 1);
+        charModCount.set(
+          mod.character,
+          (charModCount.get(mod.character) || 0) + 1
+        );
       }
     });
-    
+
     // Only include characters that have at least one mod in current search
     return Array.from(charModCount.entries())
       .filter(([_, count]) => count > 0)
@@ -144,7 +154,11 @@ export const ModsPage: FC<ModsPageProps> = ({ initialCharacter = null }) => {
   useEffect(() => {
     if (availableCharacters.length > 0 && !selectedCharacter) {
       setSelectedCharacter(availableCharacters[0]);
-    } else if (selectedCharacter && !availableCharacters.includes(selectedCharacter) && availableCharacters.length > 0) {
+    } else if (
+      selectedCharacter &&
+      !availableCharacters.includes(selectedCharacter) &&
+      availableCharacters.length > 0
+    ) {
       setSelectedCharacter(availableCharacters[0]);
     } else if (availableCharacters.length > 0 && !selectedCharacter) {
       setSelectedCharacter(availableCharacters[0]);
@@ -163,23 +177,23 @@ export const ModsPage: FC<ModsPageProps> = ({ initialCharacter = null }) => {
         setError("Mods directory not set. Please configure it in settings.");
         return;
       }
-      
+
       setNeedsSetup(false);
       // Always refresh the full mod list to ensure we have the latest state
       const [modsList, activeMods] = await Promise.all([
         window.electronAPI.mods.listLibrary(),
-        window.electronAPI.mods.listActive()
+        window.electronAPI.mods.listActive(),
       ]);
-      
+
       // Create a set of active mod IDs for quick lookup
-      const activeModIds = new Set(activeMods.map(mod => mod.id));
-      
+      const activeModIds = new Set(activeMods.map((mod) => mod.id));
+
       // Update mods with their actual enabled state
       const processedMods = modsList.map((mod: ModItem) => ({
         ...mod,
-        enabled: activeModIds.has(mod.id)
+        enabled: activeModIds.has(mod.id),
       }));
-      
+
       setMods(processedMods);
       setError(null);
     } catch (err) {
@@ -190,7 +204,7 @@ export const ModsPage: FC<ModsPageProps> = ({ initialCharacter = null }) => {
       setRefreshing(false);
     }
   }, []);
-  
+
   // Add a periodic refresh of mods
   useEffect(() => {
     const interval = setInterval(loadMods, 5000);
@@ -203,8 +217,8 @@ export const ModsPage: FC<ModsPageProps> = ({ initialCharacter = null }) => {
 
       try {
         // Update UI optimistically
-        setMods(prevMods =>
-          prevMods.map(mod =>
+        setMods((prevMods) =>
+          prevMods.map((mod) =>
             mod.id === modId ? { ...mod, enabled, pending: true } : mod
           )
         );
@@ -212,12 +226,15 @@ export const ModsPage: FC<ModsPageProps> = ({ initialCharacter = null }) => {
         // Toggle mod in backend
         const success = await window.electronAPI.mods.toggleMod(modId, enabled);
         if (!success) {
-          throw new Error('Failed to toggle mod');
+          throw new Error("Failed to toggle mod");
         }
 
         // Refresh the full mod list to ensure consistency
         await loadMods();
-        showError(`Mod ${enabled ? "enabled" : "disabled"} successfully`, 'success');
+        showError(
+          `Mod ${enabled ? "enabled" : "disabled"} successfully`,
+          "success"
+        );
       } catch (err) {
         console.error("Error toggling mod:", err);
         showError(`Failed to ${enabled ? "enable" : "disable"} mod`);
@@ -231,16 +248,13 @@ export const ModsPage: FC<ModsPageProps> = ({ initialCharacter = null }) => {
     [showError, loadMods]
   );
 
-  const deleteMod = useCallback(
-    (modId: string) => {
-      setModToDelete(modId);
-    },
-    []
-  );
+  const deleteMod = useCallback((modId: string) => {
+    setModToDelete(modId);
+  }, []);
 
   const confirmDelete = useCallback(async () => {
     if (!modToDelete) return;
-    
+
     try {
       await window.electronAPI.mods.deleteMod(modToDelete);
       setMods((prevMods) => prevMods.filter((mod) => mod.id !== modToDelete));
@@ -486,13 +500,13 @@ export const ModsPage: FC<ModsPageProps> = ({ initialCharacter = null }) => {
           ))}
           {/* Show available characters that don't have mods in current search */}
           {availableCharacters
-            .filter(char => !filteredCharacters.includes(char))
+            .filter((char) => !filteredCharacters.includes(char))
             .map((char) => (
               <button
                 key={char}
                 onClick={() => {
                   setSelectedCharacter(char);
-                  setQuery(''); // Clear search when selecting a character with no mods in current search
+                  setQuery(""); // Clear search when selecting a character with no mods in current search
                 }}
                 className="px-4 py-2 rounded-lg bg-gaming-card/50 text-gaming-text-secondary hover:bg-gaming-card-hover/50 transition-colors opacity-70"
                 title="No mods for this character in current search"
@@ -640,7 +654,7 @@ export const ModsPage: FC<ModsPageProps> = ({ initialCharacter = null }) => {
           )}
         </div>
       </div>
-      
+
       <ConfirmDialog
         isOpen={!!modToDelete}
         onClose={() => setModToDelete(null)}
