@@ -21,7 +21,7 @@ import { ModItem } from '../../types/mods';
 type ViewMode = 'grid' | 'list';
 type SortBy = 'name' | 'date' | 'status';
 
-const ModsPage: React.FC = () => {
+const DashboardPage: React.FC = () => {
   const [mods, setMods] = useState<ModItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -446,4 +446,4 @@ const StatCard: React.FC<{
   </div>
 );
 
-export default ModsPage;
+export default DashboardPage;
