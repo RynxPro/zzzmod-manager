@@ -3,7 +3,6 @@ import ReactDOM from "react-dom/client";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import "./index.css";
 import RootLayout from "./ui/RootLayout";
-import DashboardPage from "./ui/pages/DashboardPage";
 import ModsPage from "./ui/pages/mods/ModsPage";
 import SettingsPage from "./ui/pages/SettingsPage";
 import AboutPage from "./ui/pages/AboutPage";
@@ -16,8 +15,7 @@ const router = createBrowserRouter([
     path: "/",
     element: <RootLayout />,
     children: [
-      { index: true, element: <DashboardPage /> },
-      { path: "dashboard", element: <DashboardPage /> },
+      { index: true, element: <ModsPage /> },
       { path: "characters", element: <CharactersPage /> },
       { path: "characters/:charName", element: <CharacterModsPage /> },
       { path: "presets", element: <PresetsPage /> },
