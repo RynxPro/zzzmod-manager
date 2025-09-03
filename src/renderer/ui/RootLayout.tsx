@@ -129,7 +129,7 @@ const RootLayout: React.FC = () => {
             <div className="space-y-1">
               <NavItem 
                 to="/" 
-                label="Mods" 
+                label="Dashboard" 
                 icon={List}
                 count={activeModsCount}
                 isCollapsed={isSidebarCollapsed}
