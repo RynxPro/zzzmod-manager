@@ -166,9 +166,17 @@ const CharactersPage: React.FC = () => {
       <div className="max-w-6xl mx-auto">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold">Characters</h1>
-          <div className="flex items-center gap-2 text-sm text-gaming-text-secondary/70">
-            <Upload className="w-4 h-4" />
-            <span>Drag & drop mods anywhere to import</span>
+          <div className="flex items-center gap-2 text-sm bg-moon-surface/40 hover:bg-moon-surface/60 transition-colors duration-200 px-3 py-1.5 rounded-lg border border-moon-glowViolet/20 group">
+            <div className="relative">
+              <Upload className="w-4 h-4 text-moon-glowViolet" />
+              <div className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-moon-glowCyan shadow-[0_0_6px_2px_rgba(0,245,255,0.5)] animate-pulse" />
+            </div>
+            <span className="text-moon-text/90 group-hover:text-moon-text transition-colors duration-200">
+              Drag & drop mods anywhere to import
+            </span>
+            <div className="ml-1 w-5 h-5 rounded-full bg-amber-400/20 flex items-center justify-center text-amber-400 text-xs font-bold">
+              !
+            </div>
           </div>
         </div>
         

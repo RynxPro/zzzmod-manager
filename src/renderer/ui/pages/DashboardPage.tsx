@@ -67,11 +67,12 @@ const DashboardPage: React.FC = () => {
             whileTap={{ scale: 0.98 }}
           >
             <Button
-              variant="default"
+              variant="accent"
               size="lg"
-              className="group relative overflow-hidden bg-gradient-to-r from-moon-accent to-moon-accent-light hover:from-moon-accent/90 hover:to-moon-accent-light/90"
+              className="group relative overflow-hidden"
               onClick={handleImportMod}
             >
+              <div className="absolute inset-0 bg-gradient-to-r from-moon-accent to-moon-accent-light opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               <div className="relative z-10 flex items-center">
                 <Upload className="w-5 h-5 mr-2" />
                 Import Mod
