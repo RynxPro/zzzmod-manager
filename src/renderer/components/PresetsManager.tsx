@@ -47,11 +47,12 @@ interface PresetsManagerProps {
   searchQuery?: string;
 }
 
-export const PresetsManager: React.FC<PresetsManagerProps> = ({ searchQuery = '' }) => {
+export const PresetsManager: React.FC<PresetsManagerProps> = ({ searchQuery: initialSearchQuery = '' }) => {
   const [presets, setPresets] = useState<Preset[]>([]);
   const [isSaveDialogOpen, setSaveDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [activeAction, setActiveAction] = useState<{type: 'apply' | 'delete', name: string} | null>(null);
+  const [searchQuery, setSearchQuery] = useState(initialSearchQuery);
   const { success, error: showError, warning } = useToast();
 
   const fetchPresets = useCallback(async () => {
@@ -178,33 +179,59 @@ export const PresetsManager: React.FC<PresetsManagerProps> = ({ searchQuery = ''
 
   return (
     <div className="w-full">
-      <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
-        <div className="space-y-1">
-          <div className="flex items-center gap-3">
-            <div className="w-1.5 h-6 rounded-full bg-gradient-to-b from-moon-accent to-moon-glowViolet" />
-            <h2 className="text-2xl font-bold bg-gradient-to-r from-moon-text to-moon-text/80 bg-clip-text text-transparent">
-              Mod Presets
-            </h2>
+      <div className="flex flex-col gap-6">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="space-y-1">
+            <div className="flex items-center gap-3">
+              <div className="w-1.5 h-6 rounded-full bg-gradient-to-b from-moon-accent to-moon-glowViolet" />
+              <h2 className="text-2xl font-bold bg-gradient-to-r from-moon-text to-moon-text/80 bg-clip-text text-transparent">
+                Mod Presets
+              </h2>
+            </div>
+            <p className="text-sm text-moon-text/60 pl-5">Manage your saved mod configurations</p>
           </div>
-          <p className="text-sm text-moon-text/60 pl-5">Manage your saved mod configurations</p>
+          <motion.button
+            onClick={() => setSaveDialogOpen(true)}
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.98 }}
+            className={`relative overflow-hidden group flex items-center gap-2 px-5 py-2.5 text-sm rounded-lg transition-all duration-300
+              bg-gradient-to-r from-moon-accent/90 to-moon-glowViolet/90 text-moon-bg font-medium
+              shadow-lg shadow-moon-accent/20 hover:shadow-moon-glowViolet/30
+              focus:outline-none focus:ring-2 focus:ring-moon-glowViolet/50 focus:ring-offset-2 focus:ring-offset-moon-surface/50
+              ${activeAction ? 'opacity-50 cursor-not-allowed' : ''}`}
+            disabled={!!activeAction}
+          >
+            <span className="relative z-10 flex items-center gap-2">
+              <FiSave className="w-4 h-4" />
+              Save Current
+            </span>
+            <span className="absolute inset-0 bg-gradient-to-r from-moon-accent to-moon-glowViolet opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-0" />
+          </motion.button>
         </div>
-        <motion.button
-          onClick={() => setSaveDialogOpen(true)}
-          whileHover={{ scale: 1.03 }}
-          whileTap={{ scale: 0.98 }}
-          className={`relative overflow-hidden group flex items-center gap-2 px-5 py-2.5 text-sm rounded-lg transition-all duration-300
-            bg-gradient-to-r from-moon-accent/90 to-moon-glowViolet/90 text-moon-bg font-medium
-            shadow-lg shadow-moon-accent/20 hover:shadow-moon-glowViolet/30
-            focus:outline-none focus:ring-2 focus:ring-moon-glowViolet/50 focus:ring-offset-2 focus:ring-offset-moon-surface/50
-            ${activeAction ? 'opacity-50 cursor-not-allowed' : ''}`}
-          disabled={!!activeAction}
-        >
-          <span className="relative z-10 flex items-center gap-2">
-            <FiSave className="w-4 h-4" />
-            Save Current
-          </span>
-          <span className="absolute inset-0 bg-gradient-to-r from-moon-accent to-moon-glowViolet opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-0" />
-        </motion.button>
+
+        {/* Search Bar */}
+        <div className="relative">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <FiSearch className="h-4 w-4 text-moon-text/40" />
+          </div>
+          <input
+            type="text"
+            placeholder="Search presets..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="block w-full pl-10 pr-4 py-2.5 bg-moon-surface/10 border border-moon-surface/20 rounded-lg 
+                     text-moon-text placeholder-moon-text/40 focus:outline-none focus:ring-1 
+                     focus:ring-moon-glowViolet/50 focus:border-transparent transition-all duration-200"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              className="absolute inset-y-0 right-0 pr-3 flex items-center text-moon-text/40 hover:text-moon-text/70 transition-colors"
+            >
+              <FiX className="h-4 w-4" />
+            </button>
+          )}
+        </div>
       </div>
       <div className="space-y-2">
         {searchQuery && (
