@@ -88,9 +88,10 @@ const RootLayout: React.FC = () => {
         initial={false}
         animate={{ 
           width: isSidebarCollapsed ? '5rem' : '16rem',
+          minWidth: isSidebarCollapsed ? '5rem' : '16rem',
           transition: { type: 'spring', stiffness: 400, damping: 40 }
         }}
-        className="relative z-20 border-r border-white/5 bg-moon-surface/50 backdrop-blur-lg"
+        className="relative z-20 border-r border-white/5 bg-moon-surface/50 backdrop-blur-lg flex-shrink-0 overflow-hidden"
       >
         <div className="h-full flex flex-col">
           {/* Logo */}
@@ -125,7 +126,7 @@ const RootLayout: React.FC = () => {
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 overflow-y-auto py-4 px-2">
+          <nav className="flex-1 overflow-y-auto overflow-x-hidden py-4 px-2">
             <div className="space-y-1">
               <NavItem 
                 to="/" 
@@ -202,18 +203,19 @@ const RootLayout: React.FC = () => {
         </div>
 
         {/* Top Bar */}
-        <TopBar />
-
-        {/* Page Content */}
-        <main className="flex-1 overflow-auto p-6">
-          <AnimatePresence mode="wait">
+        <TopBar 
+          isSidebarCollapsed={isSidebarCollapsed} 
+          onToggleSidebar={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+        />
+        <main className="flex-1 overflow-y-auto p-6 min-w-0">
+          <AnimatePresence mode="wait" initial={false}>
             <motion.div
               key={location.pathname}
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
-              className="h-full"
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
+              className="h-full min-w-0"
             >
               <Outlet />
             </motion.div>
