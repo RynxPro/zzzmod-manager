@@ -177,66 +177,108 @@ export const PresetsManager: React.FC<PresetsManagerProps> = ({ searchQuery = ''
   }, [presets, searchQuery]);
 
   return (
-    <div className="w-full bg-moon-surface/70 border border-white/5 rounded-xl p-6 backdrop-blur-sm">
-      <div className="flex items-center justify-between mb-6">
-        <h3 className="text-xl font-bold text-moon-text">MOD PRESETS</h3>
+    <div className="w-full">
+      <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+        <div className="space-y-1">
+          <div className="flex items-center gap-3">
+            <div className="w-1.5 h-6 rounded-full bg-gradient-to-b from-moon-accent to-moon-glowViolet" />
+            <h2 className="text-2xl font-bold bg-gradient-to-r from-moon-text to-moon-text/80 bg-clip-text text-transparent">
+              Mod Presets
+            </h2>
+          </div>
+          <p className="text-sm text-moon-text/60 pl-5">Manage your saved mod configurations</p>
+        </div>
         <motion.button
           onClick={() => setSaveDialogOpen(true)}
-          whileHover={{ scale: 1.02 }}
+          whileHover={{ scale: 1.03 }}
           whileTap={{ scale: 0.98 }}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200
-            bg-moon-accent/10 text-moon-accent border border-moon-accent/20
-            hover:bg-moon-accent/20 hover:shadow-moonGlowCyan hover:shadow-moon-accent/20
-            focus:outline-none focus:ring-2 focus:ring-moon-accent/50 focus:ring-offset-2 focus:ring-offset-moon-surface/70
+          className={`relative overflow-hidden group flex items-center gap-2 px-5 py-2.5 text-sm rounded-lg transition-all duration-300
+            bg-gradient-to-r from-moon-accent/90 to-moon-glowViolet/90 text-moon-bg font-medium
+            shadow-lg shadow-moon-accent/20 hover:shadow-moon-glowViolet/30
+            focus:outline-none focus:ring-2 focus:ring-moon-glowViolet/50 focus:ring-offset-2 focus:ring-offset-moon-surface/50
             ${activeAction ? 'opacity-50 cursor-not-allowed' : ''}`}
           disabled={!!activeAction}
         >
-          <FiSave className={`transition-opacity ${activeAction ? 'opacity-50' : ''}`} />
-          <span className={`font-medium ${activeAction ? 'opacity-50' : ''}`}>Save Current Preset</span>
+          <span className="relative z-10 flex items-center gap-2">
+            <FiSave className="w-4 h-4" />
+            Save Current
+          </span>
+          <span className="absolute inset-0 bg-gradient-to-r from-moon-accent to-moon-glowViolet opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-0" />
         </motion.button>
       </div>
-      <div className="space-y-3">
-        {/* Search Info Bar */}
+      <div className="space-y-2">
         {searchQuery && (
-          <div className="flex items-center justify-between mb-2 px-2">
-            <div className="text-sm text-moon-text/60">
-              {filteredPresets.length} preset{filteredPresets.length !== 1 ? 's' : ''} found
-              {searchQuery && ` for "${searchQuery}"`}
-            </div>
+          <motion.div 
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.2 }}
+            className="flex items-center justify-between mb-4 px-1"
+          >
+            <p className="text-sm text-moon-text/70 font-medium">
+              <span className="text-moon-glowCyan">{filteredPresets.length}</span> preset{filteredPresets.length !== 1 ? 's' : ''} found
+              {searchQuery && <span className="text-moon-text/60"> for "{searchQuery}"</span>}
+            </p>
             {searchQuery && (
-              <button 
+              <motion.button 
                 onClick={() => {}}
-                className="text-xs text-moon-glowViolet hover:text-moon-glowCyan transition-colors flex items-center gap-1"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="text-xs text-moon-glowViolet hover:text-moon-glowCyan transition-all duration-200 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-moon-surface/10 hover:bg-moon-surface/20 border border-moon-surface/20"
               >
-                <FiX size={14} /> Clear search
-              </button>
+                <FiX size={14} /> Clear
+              </motion.button>
             )}
-          </div>
+          </motion.div>
         )}
 
-        <div className="max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
+        <div className="space-y-3 relative">
+          <div className="absolute -inset-4 bg-gradient-to-br from-moon-glowViolet/5 to-moon-glowCyan/5 rounded-2xl blur-xl -z-10" />
           {isLoading ? (
-            <div className="space-y-3">
+            <motion.div 
+              className="grid gap-3 grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ staggerChildren: 0.1 }}
+            >
               {[1, 2, 3].map((i: number) => (
-                <div key={i} className="h-16 bg-moon-surface/30 rounded-lg animate-pulse" />
+                <motion.div 
+                  key={i} 
+                  className="h-28 bg-moon-surface/10 rounded-xl animate-pulse border border-moon-surface/20"
+                  initial={{ opacity: 0.5, scale: 0.98 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.5, repeat: Infinity, repeatType: 'reverse' }}
+                />
               ))}
-            </div>
+            </motion.div>
           ) : filteredPresets.length === 0 ? (
-            <div className="text-center py-12 bg-moon-surface/30 rounded-lg border border-dashed border-white/10">
-              <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-moon-surface/50 border border-dashed border-moon-text/20 flex items-center justify-center text-moon-text/40">
-                <FiSave size={24} />
+            <motion.div 
+              className="text-center p-10 bg-moon-surface/5 backdrop-blur-sm rounded-2xl border border-moon-surface/20 relative overflow-hidden"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              <div className="absolute inset-0 bg-gradient-to-br from-moon-glowViolet/5 to-moon-glowCyan/5 -z-10" />
+              <div className="w-20 h-20 mx-auto mb-5 rounded-2xl bg-gradient-to-br from-moon-glowViolet/10 to-moon-glowCyan/10 border-2 border-dashed border-moon-glowViolet/20 flex items-center justify-center text-moon-glowViolet/50">
+                <FiSave size={32} className="drop-shadow-glow" />
               </div>
-              <p className="text-moon-text/70">
-                {searchQuery 
-                  ? 'No presets match your search'
-                  : 'No presets found'}
-              </p>
-              <p className="text-sm text-moon-text/50 mt-1 max-w-md mx-auto">
+              <h3 className="text-lg font-bold bg-gradient-to-r from-moon-text to-moon-text/80 bg-clip-text text-transparent mb-2">
+                {searchQuery ? 'No presets found' : 'No presets yet'}
+              </h3>
+              <p className="text-sm text-moon-text/60 max-w-md mx-auto">
                 {searchQuery 
                   ? 'Try a different search term or create a new preset.'
-                  : 'Save your current mod setup as a preset for quick access later.'}
+                  : 'Get started by saving your current mod configuration as a new preset.'}
               </p>
-            </div>
+              <motion.button
+                onClick={() => setSaveDialogOpen(true)}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className="mt-6 px-5 py-2 text-sm font-medium rounded-lg bg-moon-surface/10 border border-moon-surface/20 hover:bg-moon-surface/20 text-moon-text/80 hover:text-moon-text transition-colors duration-200 flex items-center gap-2 mx-auto"
+              >
+                <FiSave size={16} />
+                Create New Preset
+              </motion.button>
+            </motion.div>
           ) : (
             <AnimatePresence initial={false}>
               {filteredPresets.map((preset: Preset) => {
@@ -249,55 +291,82 @@ export const PresetsManager: React.FC<PresetsManagerProps> = ({ searchQuery = ''
                     key={preset.name}
                     layout
                     initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, x: -10 }}
-                    transition={{ duration: 0.2 }}
-                    className={`group flex items-center justify-between p-4 bg-moon-surface/80 rounded-lg border ${
-                      isApplying ? 'border-moon-accent/30' : 
-                      isDeleting ? 'border-red-500/30' : 
-                      'border-white/5 hover:border-moon-glowViolet/30'
-                    } ${isDisabled ? 'opacity-50' : 'hover:bg-moon-surface/90 transition-colors'}`}
+                    animate={{ 
+                      opacity: 1, 
+                      y: 0,
+                      borderColor: isApplying 
+                        ? 'rgba(0, 245, 255, 0.3)' 
+                        : isDeleting 
+                          ? 'rgba(239, 68, 68, 0.3)'
+                          : 'rgba(255, 255, 255, 0.05)'
+                    }}
+                    whileHover={!isDisabled ? { 
+                      y: -2,
+                      boxShadow: '0 10px 30px -10px rgba(0, 0, 0, 0.3)'
+                    } : {}}
+                    transition={{ 
+                      type: 'spring',
+                      stiffness: 500,
+                      damping: 30,
+                      borderColor: { duration: 0.2 }
+                    }}
+                    className={`group relative flex items-center justify-between p-5 bg-moon-surface/5 backdrop-blur-sm rounded-xl border ${
+                      isDisabled ? 'opacity-60' : 'opacity-100 hover:bg-moon-surface/10'
+                    } transition-all duration-300 overflow-hidden`}
                   >
-                    <div className="min-w-0">
+                    <div className="absolute inset-0 bg-gradient-to-r from-moon-glowViolet/5 to-moon-glowCyan/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-10" />
+                    <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-moon-accent to-moon-glowViolet opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
-                        <span className="font-medium text-moon-text truncate">{preset.name}</span>
+                        <span className="font-medium text-moon-text/90 group-hover:text-moon-glowCyan transition-colors duration-200 truncate">
+                          {preset.name}
+                        </span>
                       </div>
-                      <div className="flex items-center gap-4 mt-1.5 text-xs">
-                        <span className="flex items-center text-moon-text/60">
-                          <FiGrid className="mr-1.5" size={12} />
-                          {preset.modCount} mod{preset.modCount !== 1 ? 's' : ''}
+                      <div className="flex flex-wrap items-center gap-3 mt-2 text-xs">
+                        <span className="flex items-center text-moon-text/60 bg-moon-surface/20 group-hover:bg-moon-surface/30 px-2.5 py-1 rounded-lg transition-colors duration-200">
+                          <FiGrid className="mr-1.5 text-moon-glowViolet" size={12} />
+                          <span className="font-medium">{preset.modCount}</span> mod{preset.modCount !== 1 ? 's' : ''}
                         </span>
                         {preset.createdAt && (
-                          <span className="flex items-center text-moon-text/50" title={new Date(preset.createdAt).toLocaleString()}>
-                            <FiClock className="mr-1.5 flex-shrink-0" size={12} />
-                            {formatTimeAgo(new Date(preset.createdAt))}
+                          <span 
+                            className="flex items-center text-moon-text/40 group-hover:text-moon-text/60 transition-colors duration-200" 
+                            title={new Date(preset.createdAt).toLocaleString()}
+                          >
+                            <FiClock className="mr-1.5 flex-shrink-0 text-moon-glowViolet/80" size={12} />
+                            <span>Saved {formatTimeAgo(new Date(preset.createdAt))}</span>
                           </span>
                         )}
                       </div>
                     </div>
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-center gap-2">
                       <motion.button
                         onClick={(e) => {
                           e.stopPropagation();
                           !isDisabled && handleApplyPreset(preset.name);
                         }}
                         disabled={isDisabled}
-                        whileHover={!isDisabled ? { scale: 1.05 } : {}}
+                        whileHover={!isDisabled ? { 
+                          scale: 1.05,
+                          backgroundColor: 'rgba(0, 245, 255, 0.1)',
+                          boxShadow: '0 0 15px rgba(0, 245, 255, 0.2)'
+                        } : {}}
                         whileTap={!isDisabled ? { scale: 0.95 } : {}}
-                        className={`p-2 rounded-md transition-all relative group/btn ${
+                        className={`p-2 rounded-lg transition-all duration-200 relative group/btn ${
                           isApplying && preset.name === activeAction?.name
-                            ? "text-moon-accent/80"
-                            : "text-moon-glowingCyan/80 hover:bg-moon-glowingCyan/10 hover:text-moon-glowingCyan"
+                            ? "text-moon-accent bg-moon-accent/10"
+                            : "text-moon-text/60 hover:text-moon-accent"
                         }`}
                         title={isApplying ? 'Applying...' : 'Apply Preset'}
                       >
-                        <span className="absolute -top-2 -right-2 text-[10px] font-medium bg-moon-glowCyan/90 text-moon-bg px-1.5 py-0.5 rounded-full opacity-0 group-hover/btn:opacity-100 transition-opacity">
-                          Apply
+                        <span className="relative z-10">
+                          {isApplying && preset.name === activeAction?.name ? (
+                            <FiLoader className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <FiPlay className="w-4 h-4" />
+                          )}
                         </span>
-                        {isApplying && preset.name === activeAction?.name ? (
-                          <FiLoader className="animate-spin" />
-                        ) : (
-                          <FiPlay />
+                        {!isDisabled && !isApplying && (
+                          <span className="absolute inset-0 bg-moon-accent/0 group-hover/btn:bg-moon-accent/10 rounded-lg transition-colors duration-200" />
                         )}
                       </motion.button>
                     
@@ -307,22 +376,28 @@ export const PresetsManager: React.FC<PresetsManagerProps> = ({ searchQuery = ''
                           !isDisabled && handleDeletePreset(preset.name);
                         }}
                         disabled={isDisabled}
-                        whileHover={!isDisabled ? { scale: 1.05 } : {}}
+                        whileHover={!isDisabled ? { 
+                          scale: 1.05,
+                          backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                          boxShadow: '0 0 15px rgba(239, 68, 68, 0.2)'
+                        } : {}}
                         whileTap={!isDisabled ? { scale: 0.95 } : {}}
-                        className={`p-2 rounded-md transition-all relative group/btn ${
+                        className={`p-2 rounded-lg transition-all duration-200 relative group/btn ${
                           isDeleting && preset.name === activeAction?.name
-                            ? "text-red-400/80"
-                            : "text-red-400/60 hover:bg-red-500/10 hover:text-red-400/90"
+                            ? "text-red-400 bg-red-500/10"
+                            : "text-moon-text/40 hover:text-red-400"
                         }`}
                         title={isDeleting ? 'Deleting...' : 'Delete Preset'}
                       >
-                        <span className="absolute -top-2 -right-2 text-[10px] font-medium bg-red-500/90 text-white px-1.5 py-0.5 rounded-full opacity-0 group-hover/btn:opacity-100 transition-opacity">
-                          Delete
+                        <span className="relative z-10">
+                          {isDeleting && preset.name === activeAction?.name ? (
+                            <FiLoader className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <FiTrash2 className="w-4 h-4" />
+                          )}
                         </span>
-                        {isDeleting && preset.name === activeAction?.name ? (
-                          <FiLoader className="animate-spin" />
-                        ) : (
-                          <FiTrash2 />
+                        {!isDisabled && !isDeleting && (
+                          <span className="absolute inset-0 bg-red-500/0 group-hover/btn:bg-red-500/10 rounded-lg transition-colors duration-200" />
                         )}
                       </motion.button>
                     </div>
