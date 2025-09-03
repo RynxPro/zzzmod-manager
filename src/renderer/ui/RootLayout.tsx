@@ -46,13 +46,13 @@ const NavItem = ({
           : 'text-moon-muted hover:text-moon-text hover:bg-moon-surface/40'
       }`}
     >
-      <div className="flex items-center w-full relative z-10 justify-center sm:justify-start">
-        <div className={`p-1.5 rounded-lg transition-all duration-200 ${
+      <div className={`flex items-center w-full relative z-10 ${isCollapsed ? 'justify-center' : 'sm:justify-start'}`}>
+        <div className={`p-2.5 rounded-lg transition-all duration-200 ${
           isActuallyActive || isActive
             ? 'bg-gradient-to-br from-moon-glowCyan to-moon-glowViolet text-white shadow-md shadow-moon-glowCyan/30' 
             : 'bg-moon-surface/30 text-moon-muted group-hover:bg-moon-surface/40 group-hover:text-moon-text'
         }`}>
-          <Icon className="w-4 h-4 flex-shrink-0" />
+          <Icon className="w-5 h-5 flex-shrink-0" />
         </div>
         <motion.span 
           initial={{ opacity: 0, x: -10 }}
