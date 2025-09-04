@@ -61,9 +61,9 @@ const CharacterModsPage: React.FC = () => {
     getCharacterData(charName || ''), 
     [charName]
   );
-  const attributeIcon = getAttributeIcon(character.attribute);
-  const specialtyIcon = getSpecialtyIcon(character.specialty);
-  const rankIcon = getRankIcon(character.rank);
+  const attributeIcon = character.attribute ? getAttributeIcon(character.attribute) : '';
+  const specialtyIcon = character.specialty ? getSpecialtyIcon(character.specialty) : '';
+  const rankIcon = character.rank ? getRankIcon(character.rank) : '';
 
   useEffect(() => {
     let isMounted = true;
@@ -354,15 +354,44 @@ const CharacterModsPage: React.FC = () => {
               </motion.h1>
               
               <motion.div 
-                className="flex flex-wrap items-center justify-center md:justify-start gap-3 mt-3"
+                className="flex flex-wrap items-center justify-center md:justify-start gap-4 mt-3"
                 initial={{ opacity: 0, y: 5 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.15 }}
               >
-                <span className="px-3 py-1 bg-moon-glowViolet/10 text-moon-glowViolet text-sm font-medium rounded-full border border-moon-glowViolet/30 backdrop-blur-sm flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-moon-glowViolet animate-pulse"></span>
-                  {character.attribute}
-                </span>
+                {character.attribute && (
+                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-moon-surface/40 border border-white/5 hover:border-moon-glowViolet/30 hover:bg-moon-surface/60 transition-colors duration-200">
+                    <img
+                      src={attributeIcon}
+                      alt={character.attribute}
+                      className="h-4 w-4 object-contain"
+                      title={character.attribute}
+                    />
+                    <span className="text-sm text-moon-text/90">{character.attribute}</span>
+                  </div>
+                )}
+                {character.specialty && (
+                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-moon-surface/40 border border-white/5 hover:border-moon-glowCyan/30 hover:bg-moon-surface/60 transition-colors duration-200">
+                    <img
+                      src={specialtyIcon}
+                      alt={character.specialty}
+                      className="h-4 w-4 object-contain"
+                      title={character.specialty}
+                    />
+                    <span className="text-sm text-moon-text/90">{character.specialty}</span>
+                  </div>
+                )}
+                {character.rank && (
+                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-moon-surface/40 border border-white/5 hover:border-yellow-500/30 hover:bg-moon-surface/60 transition-colors duration-200">
+                    <img
+                      src={rankIcon}
+                      alt={`Rank ${character.rank}`}
+                      className="h-4 w-4 object-contain"
+                      title={`Rank ${character.rank}`}
+                    />
+                    <span className="text-sm text-yellow-400">{character.rank}</span>
+                  </div>
+                )}
               </motion.div>
               
               <motion.p 
