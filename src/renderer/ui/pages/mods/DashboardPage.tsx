@@ -21,9 +21,7 @@ import { characters } from "../../../data/characters";
 
 const getCharacterInfo = (name?: string) => {
   if (!name) return null;
-  return characters.find(
-    (c) => c.name.toLowerCase() === name.toLowerCase()
-  );
+  return characters.find((c) => c.name.toLowerCase() === name.toLowerCase());
 };
 import { ModItem } from "../../types/mods";
 
@@ -41,7 +39,10 @@ const DashboardPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [greeting, setGreeting] = useState("");
-  const [presets, setPresets] = useState<{name: string, mods: string[]}[]>([]);
+  const [presets, setPresets] = useState<{ name: string; mods: string[] }[]>(
+    []
+  );
+  const [showMods, setShowMods] = useState(false);
 
   // Generate time-based greeting
   useEffect(() => {
@@ -61,7 +62,7 @@ const DashboardPage: React.FC = () => {
         const presetList = await window.electronAPI.mods.listPresets();
         setPresets(presetList);
       } catch (err) {
-        console.error('Failed to fetch presets:', err);
+        console.error("Failed to fetch presets:", err);
       }
     };
     fetchPresets();
@@ -251,11 +252,10 @@ const DashboardPage: React.FC = () => {
 
           <div className="flex flex-wrap items-center gap-3">
             <Button
-              variant="outline"
-              size="sm"
+              variant="default"
               onClick={refreshMods}
               disabled={isRefreshing}
-              className="gap-2"
+              className="gap-2 bg-gradient-to-r from-moon-glowViolet to-moon-glowCyan hover:opacity-90 transition-all"
             >
               <FiRefreshCw
                 className={`w-4 h-4 ${isRefreshing ? "animate-spin" : ""}`}
@@ -269,6 +269,13 @@ const DashboardPage: React.FC = () => {
             >
               <FiPlus className="w-4 h-4" />
               Add Mod
+            </Button>
+            <Button
+              variant="default"
+              onClick={() => setShowMods((prev) => !prev)}
+              className="gap-2 bg-gradient-to-r from-moon-glowViolet to-moon-glowCyan hover:opacity-90 transition-all"
+            >
+              {showMods ? "Hide Mods" : "Show Mods"}
             </Button>
           </div>
         </div>
@@ -290,7 +297,7 @@ const DashboardPage: React.FC = () => {
           <StatCard
             icon={<FiPower className="w-5 h-5" />}
             label="Inactive"
-            value={mods.filter(mod => !mod.enabled).length}
+            value={mods.filter((mod) => !mod.enabled).length}
             color="text-blue-400"
           />
           <StatCard
@@ -390,94 +397,115 @@ const DashboardPage: React.FC = () => {
         </div>
       </div>
 
-      {filteredMods.length === 0 ? (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex flex-col items-center justify-center py-20 px-4 text-center border-2 border-dashed border-moon-surface/30 rounded-xl bg-moon-surface/10"
-        >
-          <div className="p-4 bg-moon-surface/20 rounded-full mb-4">
-            <FiPackage className="w-10 h-10 text-moon-glowViolet" />
-          </div>
-          <h3 className="text-xl font-semibold text-moon-text mb-2">
-            {searchQuery || selectedCharacter !== "all"
-              ? "No matching mods found"
-              : "No mods installed yet"}
+      {!showMods ? (
+        <div className="flex flex-col items-center justify-center py-24 px-4 text-center">
+          <h3 className="text-2xl font-semibold text-moon-text mb-4">
+            Mods are hidden
           </h3>
-          <p className="text-moon-text/60 max-w-md mb-6">
-            {searchQuery
-              ? "Try adjusting your search or filters to find what you're looking for."
-              : selectedCharacter !== "all"
-              ? `No mods found for this character. Try changing the character filter.`
-              : "Get started by adding your first mod to enhance your game experience."}
+          <p className="text-moon-text/60 mb-6">
+            Click below to show your mods list.
           </p>
-          <div className="flex flex-col sm:flex-row gap-3">
-            <Button
-              variant="default"
-              onClick={() => window.electronAPI.mods.chooseFolder()}
-              className="gap-2 bg-gradient-to-r from-moon-glowViolet to-moon-glowCyan hover:opacity-90"
-            >
-              <FiPlus className="w-4 h-4" />
-              Add Your First Mod
-            </Button>
-            {(searchQuery || selectedCharacter !== "all") && (
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setSearchQuery("");
-                  setSelectedCharacter("all");
-                }}
-              >
-                Clear Filters
-              </Button>
-            )}
-          </div>
-        </motion.div>
-      ) : (
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={`${viewMode}-${sortBy}`}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.2 }}
-            className={cn(
-              viewMode === "grid"
-                ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
-                : "space-y-3",
-              "relative"
-            )}
+          <Button
+            variant="default"
+            onClick={() => setShowMods(true)}
+            className="gap-2 bg-gradient-to-r from-moon-glowViolet to-moon-glowCyan hover:opacity-90"
           >
-            <AnimatePresence>
-              {filteredMods.map((mod) => {
-                const characterInfo = getCharacterInfo(mod.character);
-                return (
-                  <ModCard
-                    key={mod.id}
-                    mod={{
-                      ...mod,
-                      author: mod.author || "Unknown Author",
-                      version: mod.version || "1.0.0",
-                      isFavorite: mod.isFavorite || false,
-                      updatedAt: mod.updatedAt || new Date().toISOString(),
-                      lastUpdated: mod.lastUpdated || new Date().toISOString(),
-                      tags: mod.tags || [],
-                      dependencies: mod.dependencies || [],
-                      conflicts: mod.conflicts || [],
+            Show Mods
+          </Button>
+        </div>
+      ) : (
+        <>
+          {filteredMods.length === 0 ? (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex flex-col items-center justify-center py-20 px-4 text-center border-2 border-dashed border-moon-surface/30 rounded-xl bg-moon-surface/10"
+            >
+              <div className="p-4 bg-moon-surface/20 rounded-full mb-4">
+                <FiPackage className="w-10 h-10 text-moon-glowViolet" />
+              </div>
+              <h3 className="text-xl font-semibold text-moon-text mb-2">
+                {searchQuery || selectedCharacter !== "all"
+                  ? "No matching mods found"
+                  : "No mods installed yet"}
+              </h3>
+              <p className="text-moon-text/60 max-w-md mb-6">
+                {searchQuery
+                  ? "Try adjusting your search or filters to find what you're looking for."
+                  : selectedCharacter !== "all"
+                  ? `No mods found for this character. Try changing the character filter.`
+                  : "Get started by adding your first mod to enhance your game experience."}
+              </p>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Button
+                  variant="default"
+                  onClick={() => window.electronAPI.mods.chooseFolder()}
+                  className="gap-2 bg-gradient-to-r from-moon-glowViolet to-moon-glowCyan hover:opacity-90"
+                >
+                  <FiPlus className="w-4 h-4" />
+                  Add Your First Mod
+                </Button>
+                {(searchQuery || selectedCharacter !== "all") && (
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setSearchQuery("");
+                      setSelectedCharacter("all");
                     }}
-                    characterInfo={characterInfo}
-                    onToggle={handleToggleMod}
-                    onDelete={handleDeleteMod}
-                    onFavorite={handleToggleFavorite}
-                    onOpenFolder={handleOpenModFolder}
-                    viewMode={viewMode}
-                    className="w-full"
-                  />
-                );
-              })}
+                  >
+                    Clear Filters
+                  </Button>
+                )}
+              </div>
+            </motion.div>
+          ) : (
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={`${viewMode}-${sortBy}`}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.2 }}
+                className={cn(
+                  viewMode === "grid"
+                    ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+                    : "space-y-3",
+                  "relative"
+                )}
+              >
+                <AnimatePresence>
+                  {filteredMods.map((mod) => {
+                    const characterInfo = getCharacterInfo(mod.character);
+                    return (
+                      <ModCard
+                        key={mod.id}
+                        mod={{
+                          ...mod,
+                          author: mod.author || "Unknown Author",
+                          version: mod.version || "1.0.0",
+                          isFavorite: mod.isFavorite || false,
+                          updatedAt: mod.updatedAt || new Date().toISOString(),
+                          lastUpdated:
+                            mod.lastUpdated || new Date().toISOString(),
+                          tags: mod.tags || [],
+                          dependencies: mod.dependencies || [],
+                          conflicts: mod.conflicts || [],
+                        }}
+                        characterInfo={characterInfo}
+                        onToggle={handleToggleMod}
+                        onDelete={handleDeleteMod}
+                        onFavorite={handleToggleFavorite}
+                        onOpenFolder={handleOpenModFolder}
+                        viewMode={viewMode}
+                        className="w-full"
+                      />
+                    );
+                  })}
+                </AnimatePresence>
+              </motion.div>
             </AnimatePresence>
-          </motion.div>
-        </AnimatePresence>
+          )}
+        </>
       )}
     </div>
   );
