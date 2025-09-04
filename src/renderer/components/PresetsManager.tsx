@@ -54,7 +54,22 @@ export const PresetsManager: React.FC<PresetsManagerProps> = ({ searchQuery: ini
   const [activeAction, setActiveAction] = useState<{type: 'apply' | 'delete' | 'edit', name: string} | null>(null);
   const [editingPreset, setEditingPreset] = useState<Preset | null>(null);
   const [searchQuery, setSearchQuery] = useState(initialSearchQuery);
+  const [enabledMods, setEnabledMods] = useState<Array<{id: string; name: string; enabled: boolean}>>([]);
   const { success, error: showError, warning } = useToast();
+
+  const getEnabledMods = useCallback(async () => {
+    try {
+      const mods = await window.electronAPI.mods.listActive();
+      return mods.map((mod: any) => ({
+        id: mod.id,
+        name: mod.name || mod.id,
+        enabled: true // Since we're using listActive, all mods are enabled
+      }));
+    } catch (err) {
+      console.error('Error fetching enabled mods:', err);
+      return [];
+    }
+  }, []);
 
   const fetchPresets = useCallback(async () => {
     try {
@@ -85,21 +100,36 @@ export const PresetsManager: React.FC<PresetsManagerProps> = ({ searchQuery: ini
 
   useEffect(() => {
     fetchPresets();
-  }, [fetchPresets]);
+    
+    // Load enabled mods when component mounts
+    const loadEnabledMods = async () => {
+      const mods = await getEnabledMods();
+      setEnabledMods(mods);
+    };
+    loadEnabledMods();
+  }, [fetchPresets, getEnabledMods]);
 
-  const handleSavePreset = async (name: string) => {
+  const handleSavePreset = async (data: { name: string; mods: string[] }) => {
     try {
-      setActiveAction({ type: 'apply', name });
-      if (editingPreset) {
-        // If editing, delete the old preset and save as new
+      setActiveAction({ type: 'apply', name: data.name });
+      
+      // If editing, delete the old preset if the name changed
+      if (editingPreset && editingPreset.name !== data.name) {
         await window.electronAPI.mods.deletePreset(editingPreset.name);
       }
-      const result = await window.electronAPI.mods.savePreset(name);
+      
+      // Save the preset with mods
+      await window.electronAPI.mods.savePreset(data.name);
+      
+      // Apply the selected mods
+      await window.electronAPI.mods.applyPreset(data.name);
+      
       success({
         title: editingPreset ? 'Preset updated' : 'Preset saved',
-        message: `"${name}" has been ${editingPreset ? 'updated' : 'saved'} successfully`,
+        message: `"${data.name}" has been ${editingPreset ? 'updated' : 'saved'} successfully`,
         type: 'success'
       });
+      
       fetchPresets();
     } catch (err) {
       showError({
@@ -113,7 +143,7 @@ export const PresetsManager: React.FC<PresetsManagerProps> = ({ searchQuery: ini
       setEditingPreset(null);
     }
   };
-
+  
   const handleEditPreset = (preset: Preset) => {
     setEditingPreset(preset);
     setSaveDialogOpen(true);
@@ -474,6 +504,8 @@ export const PresetsManager: React.FC<PresetsManagerProps> = ({ searchQuery: ini
             onClose={() => setSaveDialogOpen(false)}
             onSave={handleSavePreset}
             initialName={editingPreset?.name}
+            initialMods={editingPreset?.mods || []}
+            availableMods={enabledMods}
             isEditing={!!editingPreset}
           />
         </div>

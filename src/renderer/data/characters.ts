@@ -239,6 +239,14 @@ export const characters: Character[] = [
     rank: "S",
   },
   {
+    id: "seed",
+    name: "Seed",
+    imageUrl: "/characters/seed_r.jpeg",
+    attribute: "Electric",
+    specialty: "Attack",
+    rank: "S",
+  },
+  {
     id: "seth",
     name: "Seth",
     imageUrl: "/characters/seth_r.jpeg",
