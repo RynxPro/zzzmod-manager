@@ -15,7 +15,8 @@ export type Specialty =
   | "Support"
   | "Anomaly"
   | "Healing"
-  | "Stun";
+  | "Stun"
+  | "Rupture";
 
 export interface Character {
   id: string;
@@ -53,6 +54,7 @@ export function getSpecialtyIcon(specialty: Specialty): string {
     Anomaly: "/specialty/Icon_Anomaly.webp",
     Healing: "/specialty/Icon_Healing.webp",
     Stun: "/specialty/Icon_Stun.webp",
+    Rupture: "/specialty/Icon_Rupture.webp",
   };
   return iconMap[specialty] || "/specialty/Icon_Support.webp";
 }

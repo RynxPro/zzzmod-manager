@@ -115,52 +115,34 @@ const CharacterCard: React.FC<CharacterCardProps> = ({
             )}
           </span>
         </h3>
-        <div className="flex items-center justify-center gap-3 px-4 py-2 min-h-[32px] w-full">
-          {attribute ? (
-            <div className="flex items-center gap-2" title={attribute}>
+        <div className="flex items-center justify-center gap-3 px-4 py-2 min-h-[24px] w-full">
+          {attribute && (
+            <div className="flex items-center" title={attribute}>
               <img
                 src={getAttributeIcon(attribute)}
                 alt={attribute}
                 className="h-4 w-4 object-contain"
               />
             </div>
-          ) : (
-            <div className="h-4 w-4 rounded-full bg-gradient-to-r from-moon-glowCyan/10 to-moon-glowViolet/10 border border-white/10 flex items-center justify-center">
-              <span className="text-[10px] font-semibold text-moon-text/70">
-                A
-              </span>
-            </div>
           )}
 
-          {specialty ? (
-            <div className="flex items-center gap-2" title={specialty}>
+          {specialty && (
+            <div className="flex items-center" title={specialty}>
               <img
                 src={getSpecialtyIcon(specialty)}
                 alt={specialty}
                 className="h-4 w-4 object-contain"
               />
             </div>
-          ) : (
-            <div className="h-4 w-4 rounded-full bg-gradient-to-r from-moon-glowCyan/10 to-moon-glowViolet/10 border border-white/10 flex items-center justify-center">
-              <span className="text-[10px] font-semibold text-moon-text/70">
-                S
-              </span>
-            </div>
           )}
 
-          {rank ? (
-            <div className="flex items-center gap-1" title={`Rank ${rank}`}>
+          {rank && (
+            <div className="flex items-center" title={`Rank ${rank}`}>
               <img
                 src={getRankIcon(rank)}
                 alt={`Rank ${rank}`}
                 className="h-4 w-4 object-contain"
               />
-            </div>
-          ) : (
-            <div className="h-4 w-4 rounded-full bg-gradient-to-r from-moon-glowCyan/10 to-moon-glowViolet/10 border border-white/10 flex items-center justify-center">
-              <span className="text-[10px] font-semibold text-moon-text/70">
-                R
-              </span>
             </div>
           )}
         </div>
