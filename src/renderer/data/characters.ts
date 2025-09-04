@@ -6,17 +6,15 @@ export const characters: Character[] = [
     name: "Alice",
     imageUrl: "/characters/alice_r.jpeg",
     attribute: "Physical",
-    specialty: "Attack",
-    rarity: 5,
-    rank: "S-2",
+    specialty: "Anomaly",
+    rank: "S",
   },
   {
     id: "anby",
     name: "Anby",
     imageUrl: "/characters/anby_r.jpeg",
     attribute: "Electric",
-    specialty: "Attack",
-    rarity: 4,
+    specialty: "Stun",
     rank: "A",
   },
   {
@@ -25,35 +23,28 @@ export const characters: Character[] = [
     imageUrl: "/characters/anbys0_r.jpeg",
     attribute: "Electric",
     specialty: "Attack",
-    rarity: 4,
-    rank: "A",
+    rank: "S",
   },
   {
     id: "anton",
     name: "Anton",
     imageUrl: "/characters/anton_r.jpeg",
-    attribute: "Fire",
+    attribute: "Electric",
     specialty: "Attack",
-    rarity: 4,
     rank: "A",
   },
   {
     id: "astra",
     name: "Astra",
     imageUrl: "/characters/astra_r.jpeg",
-    attribute: "Auric Ink",
+    attribute: "Ether",
     specialty: "Support",
-    rarity: 5,
-    rank: "S-2",
+    rank: "S",
   },
   {
     id: "belle",
     name: "Belle",
-    imageUrl: "/characters/belle_r.jpeg",
-    attribute: "Ether",
-    specialty: "Support",
-    rarity: 4,
-    rank: "A",
+    imageUrl: "/characters/belle_r.jpeg"
   },
   {
     id: "ben",
@@ -61,7 +52,6 @@ export const characters: Character[] = [
     imageUrl: "/characters/ben_r.jpeg",
     attribute: "Physical",
     specialty: "Defense",
-    rarity: 3,
     rank: "A",
   },
   {
@@ -70,7 +60,6 @@ export const characters: Character[] = [
     imageUrl: "/characters/billy_r.jpeg",
     attribute: "Fire",
     specialty: "Attack",
-    rarity: 4,
     rank: "A",
   },
   {
@@ -79,8 +68,7 @@ export const characters: Character[] = [
     imageUrl: "/characters/burnice_r.jpeg",
     attribute: "Fire",
     specialty: "Attack",
-    rarity: 5,
-    rank: "S-2",
+    rank: "S",
   },
   {
     id: "caesar",
@@ -88,7 +76,6 @@ export const characters: Character[] = [
     imageUrl: "/characters/caesar_r.jpeg",
     attribute: "Physical",
     specialty: "Defense",
-    rarity: 4,
     rank: "A",
   },
   {
@@ -97,7 +84,6 @@ export const characters: Character[] = [
     imageUrl: "/characters/corin_r.jpeg",
     attribute: "Ice",
     specialty: "Attack",
-    rarity: 4,
     rank: "A",
   },
   {
@@ -106,8 +92,7 @@ export const characters: Character[] = [
     imageUrl: "/characters/ellen_r.jpeg",
     attribute: "Frost",
     specialty: "Attack",
-    rarity: 5,
-    rank: "S-2",
+    rank: "S",
   },
   {
     id: "evelyn",
@@ -115,7 +100,6 @@ export const characters: Character[] = [
     imageUrl: "/characters/evelyn_r.jpeg",
     attribute: "Electric",
     specialty: "Support",
-    rarity: 4,
     rank: "A",
   },
   {
@@ -124,7 +108,6 @@ export const characters: Character[] = [
     imageUrl: "/characters/grace_r.jpeg",
     attribute: "Auric Ink",
     specialty: "Support",
-    rarity: 4,
     rank: "A",
   },
   {
@@ -133,7 +116,6 @@ export const characters: Character[] = [
     imageUrl: "/characters/harumasa_r.jpeg",
     attribute: "Physical",
     specialty: "Attack",
-    rarity: 4,
     rank: "A",
   },
   {
@@ -142,8 +124,7 @@ export const characters: Character[] = [
     imageUrl: "/characters/hugo_r.jpeg",
     attribute: "Physical",
     specialty: "Defense",
-    rarity: 5,
-    rank: "S-2",
+    rank: "S",
   },
   {
     id: "jane",
@@ -151,7 +132,6 @@ export const characters: Character[] = [
     imageUrl: "/characters/jane_r.jpeg",
     attribute: "Fire",
     specialty: "Attack",
-    rarity: 4,
     rank: "A",
   },
   {
@@ -160,7 +140,6 @@ export const characters: Character[] = [
     imageUrl: "/characters/jufufu_r.jpeg",
     attribute: "Ether",
     specialty: "Support",
-    rarity: 4,
     rank: "A",
   },
   {
@@ -169,8 +148,7 @@ export const characters: Character[] = [
     imageUrl: "/characters/koleda_r.jpeg",
     attribute: "Fire",
     specialty: "Attack",
-    rarity: 5,
-    rank: "S-2",
+    rank: "S",
   },
   {
     id: "lighter",
@@ -178,7 +156,6 @@ export const characters: Character[] = [
     imageUrl: "/characters/lighter_r.jpeg",
     attribute: "Fire",
     specialty: "Attack",
-    rarity: 4,
     rank: "A",
   },
   {
@@ -187,7 +164,6 @@ export const characters: Character[] = [
     imageUrl: "/characters/lucy_r.jpeg",
     attribute: "Electric",
     specialty: "Support",
-    rarity: 3,
     rank: "A",
   },
   {
@@ -196,8 +172,7 @@ export const characters: Character[] = [
     imageUrl: "/characters/lycaon_r.jpeg",
     attribute: "Frost",
     specialty: "Attack",
-    rarity: 5,
-    rank: "S-2",
+    rank: "S",
   },
   {
     id: "miyabi",
@@ -205,8 +180,7 @@ export const characters: Character[] = [
     imageUrl: "/characters/miyabi_r.jpeg",
     attribute: "Auric Ink",
     specialty: "Support",
-    rarity: 5,
-    rank: "S-2",
+    rank: "S",
   },
   {
     id: "nekomata",
@@ -214,7 +188,6 @@ export const characters: Character[] = [
     imageUrl: "/characters/nekomata_r.jpeg",
     attribute: "Electric",
     specialty: "Attack",
-    rarity: 4,
     rank: "A",
   },
   {
@@ -223,8 +196,7 @@ export const characters: Character[] = [
     imageUrl: "/characters/nicole_r.jpeg",
     attribute: "Ether",
     specialty: "Support",
-    rarity: 5,
-    rank: "S-2",
+    rank: "S",
   },
   {
     id: "pan",
@@ -232,7 +204,6 @@ export const characters: Character[] = [
     imageUrl: "/characters/pan_r.jpeg",
     attribute: "Physical",
     specialty: "Defense",
-    rarity: 3,
     rank: "A",
   },
   {
@@ -241,7 +212,6 @@ export const characters: Character[] = [
     imageUrl: "/characters/piper_r.jpeg",
     attribute: "Auric Ink",
     specialty: "Support",
-    rarity: 4,
     rank: "A",
   },
   {
@@ -250,7 +220,6 @@ export const characters: Character[] = [
     imageUrl: "/characters/pulchra_r.jpeg",
     attribute: "Ether",
     specialty: "Support",
-    rarity: 4,
     rank: "A",
   },
   {
@@ -259,8 +228,7 @@ export const characters: Character[] = [
     imageUrl: "/characters/qingyi_r.jpeg",
     attribute: "Frost",
     specialty: "Attack",
-    rarity: 5,
-    rank: "S-2",
+    rank: "S",
   },
   {
     id: "rina",
@@ -268,7 +236,6 @@ export const characters: Character[] = [
     imageUrl: "/characters/rina_r.jpeg",
     attribute: "Ice",
     specialty: "Support",
-    rarity: 4,
     rank: "A",
   },
   {
@@ -277,7 +244,6 @@ export const characters: Character[] = [
     imageUrl: "/characters/seth_r.jpeg",
     attribute: "Fire",
     specialty: "Attack",
-    rarity: 4,
     rank: "A",
   },
   {
@@ -286,8 +252,7 @@ export const characters: Character[] = [
     imageUrl: "/characters/soldier11_r.jpeg",
     attribute: "Fire",
     specialty: "Attack",
-    rarity: 5,
-    rank: "S-2",
+    rank: "S",
   },
   {
     id: "soukaku",
@@ -295,7 +260,6 @@ export const characters: Character[] = [
     imageUrl: "/characters/soukaku_r.jpeg",
     attribute: "Frost",
     specialty: "Support",
-    rarity: 4,
     rank: "A",
   },
   {
@@ -304,7 +268,6 @@ export const characters: Character[] = [
     imageUrl: "/characters/trigger_r.jpeg",
     attribute: "Physical",
     specialty: "Attack",
-    rarity: 4,
     rank: "A",
   },
   {
@@ -313,17 +276,12 @@ export const characters: Character[] = [
     imageUrl: "/characters/vivian_r.jpeg",
     attribute: "Electric",
     specialty: "Attack",
-    rarity: 4,
     rank: "A",
   },
   {
     id: "wise",
     name: "Wise",
-    imageUrl: "/characters/wise_r.jpeg",
-    attribute: "Ether",
-    specialty: "Support",
-    rarity: 5,
-    rank: "S-2",
+    imageUrl: "/characters/wise_r.jpeg"
   },
   {
     id: "yanagi",
@@ -331,7 +289,6 @@ export const characters: Character[] = [
     imageUrl: "/characters/yanagi_r.jpeg",
     attribute: "Auric Ink",
     specialty: "Support",
-    rarity: 4,
     rank: "A",
   },
   {
@@ -340,7 +297,6 @@ export const characters: Character[] = [
     imageUrl: "/characters/yixuan_r.jpeg",
     attribute: "Fire",
     specialty: "Attack",
-    rarity: 4,
     rank: "A",
   },
   {
@@ -349,8 +305,7 @@ export const characters: Character[] = [
     imageUrl: "/characters/yuzuha_r.jpeg",
     attribute: "Ice",
     specialty: "Support",
-    rarity: 5,
-    rank: "S-2",
+    rank: "S",
   },
   {
     id: "zhuyuan",
@@ -358,7 +313,6 @@ export const characters: Character[] = [
     imageUrl: "/characters/zhuyuan_r.jpeg",
     attribute: "Electric",
     specialty: "Attack",
-    rarity: 4,
     rank: "A",
   },
 ];

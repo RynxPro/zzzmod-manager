@@ -4,7 +4,6 @@ export interface Character {
   imageUrl: string;
   aliases?: string[];
   element?: string;
-  rarity?: number;
   avatar?: string;
   mods: {
     total: number;

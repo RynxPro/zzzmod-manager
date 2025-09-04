@@ -1,6 +1,13 @@
 import React from "react";
 import { FiZap } from "react-icons/fi";
-import { Attribute, Rank, Specialty, getAttributeIcon, getRankIcon, getSpecialtyIcon } from "../types/character";
+import {
+  Attribute,
+  Rank,
+  Specialty,
+  getAttributeIcon,
+  getRankIcon,
+  getSpecialtyIcon,
+} from "../types/character";
 
 interface CharacterCardProps {
   name: string;
@@ -9,9 +16,9 @@ interface CharacterCardProps {
   activeMods?: number;
   isActive?: boolean;
   onClick?: () => void;
-  attribute: Attribute;
-  specialty: Specialty;
-  rank: Rank;
+  attribute?: Attribute;
+  specialty?: Specialty;
+  rank?: Rank;
 }
 
 const StatBadge: React.FC<{
@@ -108,31 +115,54 @@ const CharacterCard: React.FC<CharacterCardProps> = ({
             )}
           </span>
         </h3>
-        <div className="flex items-center justify-between gap-2 px-4 py-2">
-          <div className="flex items-center gap-2">
-            <img
-              src={getAttributeIcon(attribute)}
-              alt={attribute}
-              className="h-4 w-4 object-contain"
-              title={attribute}
-            />
-          </div>
-          <div className="flex items-center gap-2">
-            <img
-              src={getSpecialtyIcon(specialty)}
-              alt={specialty}
-              className="h-4 w-4 object-contain"
-              title={specialty}
-            />
-          </div>
-          <div className="flex items-center gap-1">
-            <img
-              src={getRankIcon(rank)}
-              alt={`Rank ${rank}`}
-              className="h-4 w-4 object-contain"
-              title={`Rank ${rank}`}
-            />
-          </div>
+        <div className="flex items-center justify-center gap-3 px-4 py-2 min-h-[32px] w-full">
+          {attribute ? (
+            <div className="flex items-center gap-2" title={attribute}>
+              <img
+                src={getAttributeIcon(attribute)}
+                alt={attribute}
+                className="h-4 w-4 object-contain"
+              />
+            </div>
+          ) : (
+            <div className="h-4 w-4 rounded-full bg-gradient-to-r from-moon-glowCyan/10 to-moon-glowViolet/10 border border-white/10 flex items-center justify-center">
+              <span className="text-[10px] font-semibold text-moon-text/70">
+                A
+              </span>
+            </div>
+          )}
+
+          {specialty ? (
+            <div className="flex items-center gap-2" title={specialty}>
+              <img
+                src={getSpecialtyIcon(specialty)}
+                alt={specialty}
+                className="h-4 w-4 object-contain"
+              />
+            </div>
+          ) : (
+            <div className="h-4 w-4 rounded-full bg-gradient-to-r from-moon-glowCyan/10 to-moon-glowViolet/10 border border-white/10 flex items-center justify-center">
+              <span className="text-[10px] font-semibold text-moon-text/70">
+                S
+              </span>
+            </div>
+          )}
+
+          {rank ? (
+            <div className="flex items-center gap-1" title={`Rank ${rank}`}>
+              <img
+                src={getRankIcon(rank)}
+                alt={`Rank ${rank}`}
+                className="h-4 w-4 object-contain"
+              />
+            </div>
+          ) : (
+            <div className="h-4 w-4 rounded-full bg-gradient-to-r from-moon-glowCyan/10 to-moon-glowViolet/10 border border-white/10 flex items-center justify-center">
+              <span className="text-[10px] font-semibold text-moon-text/70">
+                R
+              </span>
+            </div>
+          )}
         </div>
       </div>
 

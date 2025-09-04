@@ -17,6 +17,14 @@ import {
 import { Button } from "../../components/ui/Button";
 import { cn } from "../../../lib/utils";
 import ModCard from "../../components/mods/ModCard";
+import { characters } from "../../../data/characters";
+
+const getCharacterInfo = (name?: string) => {
+  if (!name) return null;
+  return characters.find(
+    (c) => c.name.toLowerCase() === name.toLowerCase()
+  );
+};
 import { ModItem } from "../../types/mods";
 
 type ViewMode = "grid" | "list";
@@ -441,28 +449,32 @@ const DashboardPage: React.FC = () => {
             )}
           >
             <AnimatePresence>
-              {filteredMods.map((mod) => (
-                <ModCard
-                  key={mod.id}
-                  mod={{
-                    ...mod,
-                    author: mod.author || "Unknown Author",
-                    version: mod.version || "1.0.0",
-                    isFavorite: mod.isFavorite || false,
-                    updatedAt: mod.updatedAt || new Date().toISOString(),
-                    lastUpdated: mod.lastUpdated || new Date().toISOString(),
-                    tags: mod.tags || [],
-                    dependencies: mod.dependencies || [],
-                    conflicts: mod.conflicts || [],
-                  }}
-                  onToggle={handleToggleMod}
-                  onDelete={handleDeleteMod}
-                  onFavorite={handleToggleFavorite}
-                  onOpenFolder={handleOpenModFolder}
-                  viewMode={viewMode}
-                  className="w-full"
-                />
-              ))}
+              {filteredMods.map((mod) => {
+                const characterInfo = getCharacterInfo(mod.character);
+                return (
+                  <ModCard
+                    key={mod.id}
+                    mod={{
+                      ...mod,
+                      author: mod.author || "Unknown Author",
+                      version: mod.version || "1.0.0",
+                      isFavorite: mod.isFavorite || false,
+                      updatedAt: mod.updatedAt || new Date().toISOString(),
+                      lastUpdated: mod.lastUpdated || new Date().toISOString(),
+                      tags: mod.tags || [],
+                      dependencies: mod.dependencies || [],
+                      conflicts: mod.conflicts || [],
+                    }}
+                    characterInfo={characterInfo}
+                    onToggle={handleToggleMod}
+                    onDelete={handleDeleteMod}
+                    onFavorite={handleToggleFavorite}
+                    onOpenFolder={handleOpenModFolder}
+                    viewMode={viewMode}
+                    className="w-full"
+                  />
+                );
+              })}
             </AnimatePresence>
           </motion.div>
         </AnimatePresence>

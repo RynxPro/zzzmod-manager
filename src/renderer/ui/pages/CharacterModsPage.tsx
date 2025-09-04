@@ -42,7 +42,6 @@ const getCharacterData = (charId: string): Character => {
       ).join(' '),
       attribute: 'Physical' as Attribute,
       specialty: 'Support',
-      rarity: 4,
       rank: 'A',
       imageUrl: `/characters/${charId.toLowerCase().replace(/\s+/g, '')}_r.jpeg`
     };
@@ -364,16 +363,6 @@ const CharacterModsPage: React.FC = () => {
                   <span className="w-2 h-2 rounded-full bg-moon-glowViolet animate-pulse"></span>
                   {character.attribute}
                 </span>
-                <div className="flex items-center bg-moon-surface/30 px-2.5 py-1 rounded-full border border-white/5">
-                  {[...Array(5)].map((_, i) => (
-                    <span 
-                      key={i} 
-                      className={`text-sm ${i < character.rarity ? 'text-yellow-400' : 'text-moon-text/20'}`}
-                    >
-                      ★
-                    </span>
-                  ))}
-                </div>
               </motion.div>
               
               <motion.p 
