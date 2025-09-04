@@ -9,11 +9,14 @@ export type Attribute =
 
 export type Rank = 'A' | 'S-2';
 
+export type Specialty = 'Attack' | 'Defense' | 'Support' | 'Anomaly' | 'Healing' | 'Debuff';
+
 export interface Character {
   id: string;
   name: string;
   imageUrl: string;
   attribute: Attribute;
+  specialty: Specialty;
   rarity: 3 | 4 | 5; 
   rank: Rank;
 }
@@ -33,4 +36,16 @@ export function getAttributeIcon(attribute: Attribute): string {
 
 export function getRankIcon(rank: Rank): string {
   return `/ranks/Icon_AgentRank_${rank}.webp`;
+}
+
+export function getSpecialtyIcon(specialty: Specialty): string {
+  const iconMap: Record<Specialty, string> = {
+    'Attack': '/specialty/Icon_Attack.webp',
+    'Defense': '/specialty/Icon_Defense.webp',
+    'Support': '/specialty/Icon_Support.webp',
+    'Anomaly': '/specialty/Icon_Anomaly.webp',
+    'Healing': '/specialty/Icon_Healing.webp',
+    'Debuff': '/specialty/Icon_Debuff.webp'
+  };
+  return iconMap[specialty] || '/specialty/Icon_Support.webp';
 }

@@ -37,6 +37,7 @@ const CharacterCardsGrid: React.FC<CharacterCardsGridProps> = ({
         total: modsForChar.length,
         active: activeMods,
         attribute: char.attribute,
+        specialty: char.specialty,
         rank: char.rank
       };
     });
@@ -50,7 +51,8 @@ const CharacterCardsGrid: React.FC<CharacterCardsGridProps> = ({
       (char) =>
         char.name.toLowerCase().includes(query) ||
         char.id.toLowerCase().includes(query) ||
-        char.attribute.toLowerCase().includes(query)
+        char.attribute.toLowerCase().includes(query) ||
+        char.specialty.toLowerCase().includes(query)
     );
   }, [charactersWithStats, searchQuery]);
 
@@ -83,6 +85,7 @@ const CharacterCardsGrid: React.FC<CharacterCardsGridProps> = ({
               activeMods={char.active}
               onClick={() => onSelect?.(char.name)}
               attribute={char.attribute}
+              specialty={char.specialty}
               rank={char.rank}
             />
           ))}

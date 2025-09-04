@@ -18,7 +18,7 @@ import { cn } from "../../lib/utils";
 import ModCard from "../components/mods/ModCard";
 
 import { characters } from "../../data/characters";
-import { getAttributeIcon, getRankIcon, type Character, type Attribute } from "../../types/character";
+import { getAttributeIcon, getRankIcon, getSpecialtyIcon, type Character, type Attribute } from "../../types/character";
 
 // Get character data from the characters list
 const getCharacterData = (charId: string): Character => {
@@ -41,6 +41,7 @@ const getCharacterData = (charId: string): Character => {
         word.charAt(0).toUpperCase() + word.slice(1)
       ).join(' '),
       attribute: 'Physical' as Attribute,
+      specialty: 'Support',
       rarity: 4,
       rank: 'A',
       imageUrl: `/characters/${charId.toLowerCase().replace(/\s+/g, '')}_r.jpeg`
@@ -62,6 +63,7 @@ const CharacterModsPage: React.FC = () => {
     [charName]
   );
   const attributeIcon = getAttributeIcon(character.attribute);
+  const specialtyIcon = getSpecialtyIcon(character.specialty);
   const rankIcon = getRankIcon(character.rank);
 
   useEffect(() => {
@@ -251,21 +253,40 @@ const CharacterModsPage: React.FC = () => {
           </motion.button>
           
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 bg-moon-surface/50 px-3 py-1.5 rounded-lg">
-              <img 
-                src={attributeIcon} 
-                alt={character.attribute}
-                className="w-5 h-5 object-contain"
-              />
-              <span className="text-moon-text font-medium">{character.attribute}</span>
-            </div>
-            <div className="flex items-center gap-2 bg-moon-surface/50 px-3 py-1.5 rounded-lg">
-              <img 
-                src={rankIcon} 
-                alt={`Rank ${character.rank}`}
-                className="w-5 h-5 object-contain"
-              />
-              <span className="text-moon-text font-medium">Rank {character.rank}</span>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <img
+                  src={attributeIcon}
+                  alt={character.attribute}
+                  className="h-6 w-6 object-contain"
+                  title={character.attribute}
+                />
+                <span className="text-sm font-medium text-moon-text">
+                  {character.attribute}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <img
+                  src={specialtyIcon}
+                  alt={character.specialty}
+                  className="h-6 w-6 object-contain"
+                  title={character.specialty}
+                />
+                <span className="text-sm font-medium text-moon-text">
+                  {character.specialty}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <img
+                  src={rankIcon}
+                  alt={`Rank ${character.rank}`}
+                  className="h-6 w-6 object-contain"
+                  title={`Rank ${character.rank}`}
+                />
+                <span className="text-sm font-medium text-yellow-400">
+                  {character.rank}
+                </span>
+              </div>
             </div>
           </div>
         </div>

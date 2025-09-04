@@ -1,8 +1,6 @@
 import React from "react";
 import { FiZap } from "react-icons/fi";
-import { getAttributeIcon, getRankIcon, type Rank } from "../types/character";
-
-import { Attribute } from '../types/character';
+import { Attribute, Rank, Specialty, getAttributeIcon, getRankIcon, getSpecialtyIcon } from "../types/character";
 
 interface CharacterCardProps {
   name: string;
@@ -11,8 +9,9 @@ interface CharacterCardProps {
   activeMods?: number;
   isActive?: boolean;
   onClick?: () => void;
-  attribute?: Attribute;
-  rank?: Rank;
+  attribute: Attribute;
+  specialty: Specialty;
+  rank: Rank;
 }
 
 const StatBadge: React.FC<{
@@ -40,8 +39,9 @@ const CharacterCard: React.FC<CharacterCardProps> = ({
   activeMods = 0,
   isActive = false,
   onClick,
-  attribute = 'Physical',
-  rank = 'A',
+  attribute,
+  specialty,
+  rank,
 }) => {
   return (
     <div
@@ -108,20 +108,28 @@ const CharacterCard: React.FC<CharacterCardProps> = ({
             )}
           </span>
         </h3>
-        <div className="flex items-center justify-center gap-3 w-full mt-1.5">
-          <div className="flex items-center gap-1 bg-moon-surface/50 px-2 py-0.5 rounded-md">
-            <img 
-              src={getAttributeIcon(attribute)} 
+        <div className="flex items-center justify-between gap-2 px-4 py-2">
+          <div className="flex items-center gap-2">
+            <img
+              src={getAttributeIcon(attribute)}
               alt={attribute}
-              className="w-3.5 h-3.5"
+              className="h-4 w-4 object-contain"
+              title={attribute}
             />
-            <span className="text-xs text-moon-text/90">{attribute}</span>
           </div>
-          <div className="flex items-center gap-1 bg-moon-surface/50 px-2 py-0.5 rounded-md">
-<img 
-              src={getRankIcon(rank)} 
+          <div className="flex items-center gap-2">
+            <img
+              src={getSpecialtyIcon(specialty)}
+              alt={specialty}
+              className="h-4 w-4 object-contain"
+              title={specialty}
+            />
+          </div>
+          <div className="flex items-center gap-1">
+            <img
+              src={getRankIcon(rank)}
               alt={`Rank ${rank}`}
-              className="w-4 h-4 object-contain"
+              className="h-4 w-4 object-contain"
               title={`Rank ${rank}`}
             />
           </div>

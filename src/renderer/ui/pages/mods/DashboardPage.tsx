@@ -80,9 +80,8 @@ const DashboardPage: React.FC = () => {
   const handleToggleMod = async (modId: string, enabled: boolean) => {
     try {
       await window.electronAPI.mods.toggleMod(modId, enabled);
-      setMods((prevMods) =>
-        prevMods.map((mod) => (mod.id === modId ? { ...mod, enabled } : mod))
-      );
+      // refresh authoritative data from backend to keep UI in sync
+      await refreshMods();
     } catch (err) {
       console.error("Failed to toggle mod:", err);
       setError("Failed to update mod status.");
@@ -94,7 +93,8 @@ const DashboardPage: React.FC = () => {
 
     try {
       await window.electronAPI.mods.deleteMod(modId);
-      setMods((prevMods) => prevMods.filter((mod) => mod.id !== modId));
+      // refresh authoritative data from backend
+      await refreshMods();
     } catch (err) {
       console.error("Failed to delete mod:", err);
       setError("Failed to delete mod. Please try again.");
@@ -114,15 +114,18 @@ const DashboardPage: React.FC = () => {
   };
 
   const filteredMods = React.useMemo(() => {
-    return mods
-      .filter((mod) => {
-        const matchesSearch =
-          mod.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          mod.description?.toLowerCase().includes(searchQuery.toLowerCase());
+    const q = searchQuery.trim().toLowerCase();
 
+    const list = mods
+      .filter((mod) => {
+        const name = String(mod.name || "").toLowerCase();
+        const desc = String(mod.description || "").toLowerCase();
+
+        const matchesSearch = !q || name.includes(q) || desc.includes(q);
+
+        const modCharKey = String(mod.character || "unassigned").toLowerCase();
         const matchesCharacter =
-          selectedCharacter === "all" ||
-          mod.character?.toLowerCase() === selectedCharacter.toLowerCase();
+          selectedCharacter === "all" || modCharKey === selectedCharacter;
 
         return matchesSearch && matchesCharacter;
       })
@@ -133,28 +136,35 @@ const DashboardPage: React.FC = () => {
           case "date":
             return (b.updatedAt || "").localeCompare(a.updatedAt || "");
           case "status":
-            if (a.enabled === b.enabled) return 0;
+            if (!!a.enabled === !!b.enabled) return 0;
             return a.enabled ? -1 : 1;
           default:
             return 0;
         }
       });
+
+    return list;
   }, [mods, searchQuery, sortBy, selectedCharacter]);
 
-  const characterFilters = React.useMemo(() => {
-    const characters = new Set<string>(["all"]);
+  const characterOptions = React.useMemo(() => {
+    const map = new Map();
     mods.forEach((mod) => {
-      if (mod.character) {
-        characters.add(mod.character);
-      }
+      const name = mod.character ? String(mod.character) : "Unassigned";
+      const key = name.toLowerCase();
+      if (!map.has(key)) map.set(key, name);
     });
-    return Array.from(characters);
+
+    const options = [{ key: "all", label: "All Characters" }].concat(
+      Array.from(map.entries()).map(([key, label]) => ({ key, label }))
+    );
+
+    return options;
   }, [mods]);
 
   const stats = React.useMemo(
     () => ({
       total: mods.length,
-      enabled: mods.filter((m) => m.enabled).length,
+      enabled: mods.filter((m) => !!m.enabled).length,
       disabled: mods.filter((m) => !m.enabled).length,
       favorites: mods.filter((m) => m.isFavorite).length,
     }),
@@ -359,9 +369,9 @@ const DashboardPage: React.FC = () => {
                     className="w-full bg-moon-surface/20 border border-moon-surface/30 rounded-lg px-3 py-2 text-sm text-moon-text focus:outline-none focus:ring-2 focus:ring-moon-glowViolet/50 focus:border-transparent"
                   >
                     <option value="all">All Characters</option>
-                    {characterFilters.map((char) => (
-                      <option key={char} value={char}>
-                        {char.charAt(0).toUpperCase() + char.slice(1)}
+                    {characterOptions.map((opt) => (
+                      <option key={opt.key} value={opt.key}>
+                        {opt.label}
                       </option>
                     ))}
                   </select>
