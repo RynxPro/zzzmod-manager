@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { ModItem } from "../types/mods";
@@ -17,15 +17,36 @@ import { Button } from "../components/ui/Button";
 import { cn } from "../../lib/utils";
 import ModCard from "../components/mods/ModCard";
 
-// Mock character data - replace with actual data
-const getCharacterData = (charName: string) => {
-  // This is a mock - replace with actual character data
-  return {
-    name: charName || "Character",
-    element: "Anemo", // Example element
-    rarity: 5, // Example rarity
-    imageUrl: `/characters/${charName?.toLowerCase()}_r.jpeg` || ""
-  };
+import { characters } from "../../data/characters";
+import { getAttributeIcon, getRankIcon, type Character, type Attribute } from "../../types/character";
+
+// Get character data from the characters list
+const getCharacterData = (charId: string): Character => {
+  const character = characters.find(c => c.id === charId);
+  if (!character) {
+    // Try to find by name as fallback (for backward compatibility)
+    const charByName = characters.find(c => 
+      c.name.toLowerCase() === charId.toLowerCase() ||
+      c.name.toLowerCase().replace(/\s+/g, '-') === charId.toLowerCase()
+    );
+    
+    if (charByName) {
+      return charByName;
+    }
+    
+    // If still not found, create a default character
+    return {
+      id: charId,
+      name: charId.split('-').map(word => 
+        word.charAt(0).toUpperCase() + word.slice(1)
+      ).join(' '),
+      attribute: 'Physical' as Attribute,
+      rarity: 4,
+      rank: 'A',
+      imageUrl: `/characters/${charId.toLowerCase().replace(/\s+/g, '')}_r.jpeg`
+    };
+  }
+  return character;
 };
 
 const CharacterModsPage: React.FC = () => {
@@ -34,7 +55,14 @@ const CharacterModsPage: React.FC = () => {
   const [mods, setMods] = useState<ModItem[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const character = getCharacterData(charName || '');
+  
+  // Get character data and handle loading states
+  const character = useMemo(() => 
+    getCharacterData(charName || ''), 
+    [charName]
+  );
+  const attributeIcon = getAttributeIcon(character.attribute);
+  const rankIcon = getRankIcon(character.rank);
 
   useEffect(() => {
     let isMounted = true;
@@ -212,30 +240,46 @@ const CharacterModsPage: React.FC = () => {
   if (error) {
     return (
       <div className="p-6 max-w-6xl mx-auto">
-        <motion.button
-          onClick={() => navigate("/characters")}
-          className="group flex items-center gap-2 px-4 py-2.5 rounded-xl bg-moon-surface/50 text-moon-text border border-white/5 hover:border-moon-glowCyan/30 hover:bg-moon-surface/70 hover:shadow-moonGlowCyan/20 transition-all duration-300 mb-6"
-          whileHover={{ x: -2 }}
-        >
-          <FiArrowLeft className="w-5 h-5 group-hover:text-moon-glowCyan transition-colors" />
-          Back to Characters
-        </motion.button>
+        <div className="flex items-center justify-between mb-6">
+          <motion.button
+            onClick={() => navigate("/characters")}
+            className="group flex items-center gap-2 px-4 py-2.5 rounded-xl bg-moon-surface/50 text-moon-text border border-white/5 hover:border-moon-glowCyan/30 hover:bg-moon-surface/70 hover:shadow-moonGlowCyan/20 transition-all duration-300"
+            whileHover={{ x: -2 }}
+          >
+            <FiArrowLeft className="w-5 h-5 group-hover:text-moon-glowCyan transition-colors" />
+            Back to Characters
+          </motion.button>
+          
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 bg-moon-surface/50 px-3 py-1.5 rounded-lg">
+              <img 
+                src={attributeIcon} 
+                alt={character.attribute}
+                className="w-5 h-5 object-contain"
+              />
+              <span className="text-moon-text font-medium">{character.attribute}</span>
+            </div>
+            <div className="flex items-center gap-2 bg-moon-surface/50 px-3 py-1.5 rounded-lg">
+              <img 
+                src={rankIcon} 
+                alt={`Rank ${character.rank}`}
+                className="w-5 h-5 object-contain"
+              />
+              <span className="text-moon-text font-medium">Rank {character.rank}</span>
+            </div>
+          </div>
+        </div>
         <div className="bg-red-900/30 border border-red-500/40 rounded-2xl p-6 backdrop-blur-sm">
-          <div className="flex items-start gap-3">
-            <div className="mt-0.5 p-1.5 bg-red-500/20 rounded-lg">
-              <FiInfo className="w-5 h-5 text-red-400" />
-            </div>
-            <div>
-              <h3 className="font-semibold text-red-200">Error Loading Mods</h3>
-              <p className="text-red-300/90 mt-1">{error}</p>
-              <button
-                onClick={() => window.location.reload()}
-                className="mt-3 px-4 py-1.5 text-sm rounded-lg bg-red-500/20 hover:bg-red-500/30 text-red-100 border border-red-500/40 hover:border-red-400/60 transition-colors flex items-center gap-2"
-              >
-                <FiZap className="w-3.5 h-3.5" />
-                Retry
-              </button>
-            </div>
+          <div>
+            <h3 className="font-semibold text-red-200">Error Loading Mods</h3>
+            <p className="text-red-300/90 mt-1">{error}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="mt-3 px-4 py-1.5 text-sm rounded-lg bg-red-500/20 hover:bg-red-500/30 text-red-100 border border-red-500/40 hover:border-red-400/60 transition-colors flex items-center gap-2"
+            >
+              <FiZap className="w-3.5 h-3.5" />
+              Retry
+            </button>
           </div>
         </div>
       </div>
@@ -297,7 +341,7 @@ const CharacterModsPage: React.FC = () => {
               >
                 <span className="px-3 py-1 bg-moon-glowViolet/10 text-moon-glowViolet text-sm font-medium rounded-full border border-moon-glowViolet/30 backdrop-blur-sm flex items-center gap-1.5">
                   <span className="w-2 h-2 rounded-full bg-moon-glowViolet animate-pulse"></span>
-                  {character.element}
+                  {character.attribute}
                 </span>
                 <div className="flex items-center bg-moon-surface/30 px-2.5 py-1 rounded-full border border-white/5">
                   {[...Array(5)].map((_, i) => (

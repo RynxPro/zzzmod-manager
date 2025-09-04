@@ -1,5 +1,8 @@
 import React from "react";
 import { FiZap } from "react-icons/fi";
+import { getAttributeIcon, getRankIcon, type Rank } from "../types/character";
+
+import { Attribute } from '../types/character';
 
 interface CharacterCardProps {
   name: string;
@@ -8,6 +11,8 @@ interface CharacterCardProps {
   activeMods?: number;
   isActive?: boolean;
   onClick?: () => void;
+  attribute?: Attribute;
+  rank?: Rank;
 }
 
 const StatBadge: React.FC<{
@@ -35,6 +40,8 @@ const CharacterCard: React.FC<CharacterCardProps> = ({
   activeMods = 0,
   isActive = false,
   onClick,
+  attribute = 'Physical',
+  rank = 'A',
 }) => {
   return (
     <div
@@ -89,13 +96,37 @@ const CharacterCard: React.FC<CharacterCardProps> = ({
         </div>
       </div>
 
-      {/* Character name */}
-      <h3 className="text-base font-semibold text-moon-text text-center mb-2.5 relative group-hover:text-moon-glowViolet transition-colors duration-300">
-        <span className="relative inline-block">
-          {name}
-          <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-moon-glowViolet transition-all duration-300 group-hover:w-full"></span>
-        </span>
-      </h3>
+      {/* Character name, attribute and rank */}
+      <div className="flex flex-col items-center mb-2.5 w-full">
+        <h3 className="text-base font-semibold text-moon-text relative group-hover:text-moon-glowViolet transition-colors duration-300">
+          <span className="relative inline-block">
+            {name}
+            {isActive && (
+              <span className="absolute -top-2 -right-4 text-moon-glowCyan">
+                <FiZap className="w-3.5 h-3.5" />
+              </span>
+            )}
+          </span>
+        </h3>
+        <div className="flex items-center justify-center gap-3 w-full mt-1.5">
+          <div className="flex items-center gap-1 bg-moon-surface/50 px-2 py-0.5 rounded-md">
+            <img 
+              src={getAttributeIcon(attribute)} 
+              alt={attribute}
+              className="w-3.5 h-3.5"
+            />
+            <span className="text-xs text-moon-text/90">{attribute}</span>
+          </div>
+          <div className="flex items-center gap-1 bg-moon-surface/50 px-2 py-0.5 rounded-md">
+<img 
+              src={getRankIcon(rank)} 
+              alt={`Rank ${rank}`}
+              className="w-4 h-4 object-contain"
+              title={`Rank ${rank}`}
+            />
+          </div>
+        </div>
+      </div>
 
       {/* Mod stats */}
       <div className="flex gap-2">

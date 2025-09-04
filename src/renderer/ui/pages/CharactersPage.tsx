@@ -5,6 +5,7 @@ import CharacterCardsGrid from "../../components/CharacterCardsGrid";
 import { ModItem } from "../types/mods";
 import CharacterSelectDialog from "../../components/CharacterSelectDialog";
 import { ToastContainer, useToast } from "../components/Toast";
+import { characters } from "../../data/characters";
 
 const CharactersPage: React.FC = () => {
   const [mods, setMods] = useState<ModItem[]>([]);
@@ -64,7 +65,14 @@ const CharactersPage: React.FC = () => {
       console.error("Character name is required");
       return;
     }
-    navigate(`/characters/${encodeURIComponent(charName)}`);
+    // Find the character by name to get their ID
+    const char = characters.find(c => c.name === charName);
+    if (char) {
+      navigate(`/characters/${encodeURIComponent(char.id)}`);
+    } else {
+      // Fallback to name-based URL if character not found
+      navigate(`/characters/${encodeURIComponent(charName.toLowerCase().replace(/\s+/g, '-'))}`);
+    }
   };
 
   // Drag & Drop Handlers - Simplified to only handle the drop event

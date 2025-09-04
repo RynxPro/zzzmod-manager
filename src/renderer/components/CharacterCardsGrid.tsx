@@ -3,6 +3,7 @@ import { Search } from "lucide-react";
 import CharacterCard from "./CharacterCard";
 import { characters } from "../data/characters";
 import { ModItem } from "../ui/types/mods";
+import { Character } from "../types/character";
 
 interface CharacterCardsGridProps {
   mods: ModItem[];
@@ -16,11 +17,6 @@ const CharacterCardsGrid: React.FC<CharacterCardsGridProps> = ({
   const [searchQuery, setSearchQuery] = useState("");
 
   const charactersWithStats = useMemo(() => {
-    // Create a map of lowercase character names to their original case
-    const characterNameMap = new Map(
-      characters.map(char => [char.name.toLowerCase(), char.name])
-    );
-    
     // Group mods by character name (case-insensitive)
     const modsByChar = new Map<string, ModItem[]>();
     
@@ -33,14 +29,15 @@ const CharacterCardsGrid: React.FC<CharacterCardsGridProps> = ({
     });
     
     return characters.map(char => {
-      const lowerCharName = char.name.toLowerCase();
-      const modsForChar = modsByChar.get(lowerCharName) || [];
+      const modsForChar = modsByChar.get(char.name.toLowerCase()) || [];
       const activeMods = modsForChar.filter(m => m.enabled).length;
       
       return {
         ...char,
         total: modsForChar.length,
         active: activeMods,
+        attribute: char.attribute,
+        rank: char.rank
       };
     });
   }, [mods]);
@@ -52,7 +49,8 @@ const CharacterCardsGrid: React.FC<CharacterCardsGridProps> = ({
     return charactersWithStats.filter(
       (char) =>
         char.name.toLowerCase().includes(query) ||
-        char.id.toLowerCase().includes(query)
+        char.id.toLowerCase().includes(query) ||
+        char.attribute.toLowerCase().includes(query)
     );
   }, [charactersWithStats, searchQuery]);
 
@@ -84,6 +82,8 @@ const CharacterCardsGrid: React.FC<CharacterCardsGridProps> = ({
               totalMods={char.total}
               activeMods={char.active}
               onClick={() => onSelect?.(char.name)}
+              attribute={char.attribute}
+              rank={char.rank}
             />
           ))}
         </div>
