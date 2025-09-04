@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { FiSave, FiPlay, FiTrash2, FiLoader, FiSearch, FiX, FiClock, FiGrid } from 'react-icons/fi';
+import { FiSave, FiPlay, FiTrash2, FiEdit2, FiLoader, FiSearch, FiX, FiClock, FiGrid } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
 import PresetSaveDialog from './PresetSaveDialog';
 import { useToast } from '../ui/components/Toast';
@@ -51,7 +51,8 @@ export const PresetsManager: React.FC<PresetsManagerProps> = ({ searchQuery: ini
   const [presets, setPresets] = useState<Preset[]>([]);
   const [isSaveDialogOpen, setSaveDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeAction, setActiveAction] = useState<{type: 'apply' | 'delete', name: string} | null>(null);
+  const [activeAction, setActiveAction] = useState<{type: 'apply' | 'delete' | 'edit', name: string} | null>(null);
+  const [editingPreset, setEditingPreset] = useState<Preset | null>(null);
   const [searchQuery, setSearchQuery] = useState(initialSearchQuery);
   const { success, error: showError, warning } = useToast();
 
@@ -89,23 +90,33 @@ export const PresetsManager: React.FC<PresetsManagerProps> = ({ searchQuery: ini
   const handleSavePreset = async (name: string) => {
     try {
       setActiveAction({ type: 'apply', name });
+      if (editingPreset) {
+        // If editing, delete the old preset and save as new
+        await window.electronAPI.mods.deletePreset(editingPreset.name);
+      }
       const result = await window.electronAPI.mods.savePreset(name);
       success({
-        title: 'Preset saved',
-        message: `"${name}" has been saved successfully`,
+        title: editingPreset ? 'Preset updated' : 'Preset saved',
+        message: `"${name}" has been ${editingPreset ? 'updated' : 'saved'} successfully`,
         type: 'success'
       });
       fetchPresets();
     } catch (err) {
       showError({
-        title: 'Failed to save preset',
+        title: `Failed to ${editingPreset ? 'update' : 'save'} preset`,
         message: err instanceof Error ? err.message : 'An unknown error occurred',
         type: 'error'
       });
     } finally {
       setActiveAction(null);
       setSaveDialogOpen(false);
+      setEditingPreset(null);
     }
+  };
+
+  const handleEditPreset = (preset: Preset) => {
+    setEditingPreset(preset);
+    setSaveDialogOpen(true);
   };
 
   const handleApplyPreset = async (name: string) => {
@@ -164,7 +175,7 @@ export const PresetsManager: React.FC<PresetsManagerProps> = ({ searchQuery: ini
     }
   };
 
-  const isActionInProgress = (type: 'apply' | 'delete', name: string) => {
+  const isActionInProgress = (type: 'apply' | 'delete' | 'edit', name: string) => {
     return activeAction?.type === type && activeAction?.name === name;
   };
 
@@ -400,6 +411,31 @@ export const PresetsManager: React.FC<PresetsManagerProps> = ({ searchQuery: ini
                       <motion.button
                         onClick={(e) => {
                           e.stopPropagation();
+                          !isDisabled && handleEditPreset(preset);
+                        }}
+                        disabled={isDisabled}
+                        whileHover={!isDisabled ? { 
+                          scale: 1.05,
+                          backgroundColor: 'rgba(147, 197, 253, 0.1)',
+                          boxShadow: '0 0 15px rgba(147, 197, 253, 0.2)'
+                        } : {}}
+                        whileTap={!isDisabled ? { scale: 0.95 } : {}}
+                        className={`p-2 rounded-lg transition-all duration-200 relative group/btn ${
+                          "text-moon-text/40 hover:text-blue-400"
+                        }`}
+                        title="Edit Preset"
+                      >
+                        <span className="relative z-10">
+                          <FiEdit2 className="w-4 h-4" />
+                        </span>
+                        {!isDisabled && (
+                          <span className="absolute inset-0 bg-blue-500/0 group-hover/btn:bg-blue-500/10 rounded-lg transition-colors duration-200" />
+                        )}
+                      </motion.button>
+                    
+                      <motion.button
+                        onClick={(e) => {
+                          e.stopPropagation();
                           !isDisabled && handleDeletePreset(preset.name);
                         }}
                         disabled={isDisabled}
@@ -437,6 +473,8 @@ export const PresetsManager: React.FC<PresetsManagerProps> = ({ searchQuery: ini
             isOpen={isSaveDialogOpen}
             onClose={() => setSaveDialogOpen(false)}
             onSave={handleSavePreset}
+            initialName={editingPreset?.name}
+            isEditing={!!editingPreset}
           />
         </div>
       </div>

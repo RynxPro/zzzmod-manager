@@ -5,16 +5,26 @@ interface PresetSaveDialogProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (name: string) => void;
+  initialName?: string;
+  isEditing?: boolean;
 }
 
-const PresetSaveDialog: React.FC<PresetSaveDialogProps> = ({ isOpen, onClose, onSave }) => {
-  const [name, setName] = useState('');
+const PresetSaveDialog: React.FC<PresetSaveDialogProps> = ({ 
+  isOpen, 
+  onClose, 
+  onSave, 
+  initialName = '',
+  isEditing = false
+}) => {
+  const [name, setName] = useState(initialName);
 
   useEffect(() => {
-    if (!isOpen) {
+    if (isOpen) {
+      setName(initialName);
+    } else {
       setName('');
     }
-  }, [isOpen]);
+  }, [isOpen, initialName]);
 
   const handleSave = () => {
     if (name.trim()) {
@@ -33,7 +43,9 @@ const PresetSaveDialog: React.FC<PresetSaveDialogProps> = ({ isOpen, onClose, on
             transition={{ duration: 0.2, ease: 'easeOut' }}
             className="bg-moon-surface/80 border border-white/10 rounded-xl shadow-2xl w-full max-w-md p-6"
           >
-            <h2 className="text-xl font-bold mb-4 text-moon-text">Save New Preset</h2>
+            <h2 className="text-xl font-bold mb-4 text-moon-text">
+              {isEditing ? 'Edit Preset' : 'Save New Preset'}
+            </h2>
             <input
               type="text"
               value={name}
