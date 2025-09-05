@@ -66,12 +66,16 @@ const CharactersPage: React.FC = () => {
       return;
     }
     // Find the character by name to get their ID
-    const char = characters.find(c => c.name === charName);
+    const char = characters.find((c) => c.name === charName);
     if (char) {
       navigate(`/characters/${encodeURIComponent(char.id)}`);
     } else {
       // Fallback to name-based URL if character not found
-      navigate(`/characters/${encodeURIComponent(charName.toLowerCase().replace(/\s+/g, '-'))}`);
+      navigate(
+        `/characters/${encodeURIComponent(
+          charName.toLowerCase().replace(/\s+/g, "-")
+        )}`
+      );
     }
   };
 

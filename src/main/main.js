@@ -198,8 +198,12 @@ safeIpcHandle("mods:deleteMod", async (_e, id) => modsApi.deleteMod(id));
 // Preset handlers
 safeIpcHandle("mods:listPresets", async () => modsApi.listPresets());
 safeIpcHandle("mods:savePreset", async (_e, name) => modsApi.savePreset(name));
-safeIpcHandle("mods:applyPreset", async (_e, name) => modsApi.applyPreset(name));
-safeIpcHandle("mods:deletePreset", async (_e, name) => modsApi.deletePreset(name));
+safeIpcHandle("mods:applyPreset", async (_e, name) =>
+  modsApi.applyPreset(name)
+);
+safeIpcHandle("mods:deletePreset", async (_e, name) =>
+  modsApi.deletePreset(name)
+);
 
 // Import handlers with character support
 safeIpcHandle("mods:importZip", async (_e, filePath, character = null) => {
@@ -245,8 +249,11 @@ safeIpcHandle("settings:chooseModsDir", async () => {
 
 // Backup app data directory into a timestamped folder in a user-selected destination
 safeIpcHandle("settings:backup", async () => {
-  const res = await dialog.showOpenDialog({ properties: ["openDirectory", "createDirectory"] });
-  if (res.canceled || res.filePaths.length === 0) return { success: false, canceled: true };
+  const res = await dialog.showOpenDialog({
+    properties: ["openDirectory", "createDirectory"],
+  });
+  if (res.canceled || res.filePaths.length === 0)
+    return { success: false, canceled: true };
   const destRoot = res.filePaths[0];
   const stamp = new Date()
     .toISOString()

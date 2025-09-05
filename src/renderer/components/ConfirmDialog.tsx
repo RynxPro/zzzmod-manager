@@ -1,5 +1,5 @@
-import { motion, AnimatePresence } from 'framer-motion';
-import { X } from 'lucide-react';
+import { motion, AnimatePresence } from "framer-motion";
+import { X } from "lucide-react";
 
 interface ConfirmDialogProps {
   isOpen: boolean;
@@ -17,8 +17,8 @@ export function ConfirmDialog({
   onConfirm,
   title,
   message,
-  confirmText = 'Confirm',
-  cancelText = 'Cancel',
+  confirmText = "Confirm",
+  cancelText = "Cancel",
 }: ConfirmDialogProps) {
   if (!isOpen) return null;
 
@@ -29,7 +29,7 @@ export function ConfirmDialog({
           initial={{ opacity: 0, y: 20, scale: 0.95 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 20, scale: 0.95 }}
-          transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+          transition={{ type: "spring", damping: 25, stiffness: 300 }}
           className="relative w-full max-w-md bg-gaming-bg-surface/90 backdrop-blur-lg rounded-2xl border border-gaming-border/50 p-6 shadow-2xl"
         >
           <button
@@ -39,11 +39,11 @@ export function ConfirmDialog({
           >
             <X size={20} />
           </button>
-          
+
           <div className="space-y-4">
             <h3 className="text-xl font-bold text-gaming-text">{title}</h3>
             <p className="text-gaming-text-muted">{message}</p>
-            
+
             <div className="flex justify-end space-x-3 pt-2">
               <button
                 onClick={onClose}

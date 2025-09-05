@@ -117,7 +117,9 @@ const SettingsPage: React.FC = () => {
         transition={{ duration: 0.3 }}
       >
         <h1 className="text-3xl font-bold text-moon-text mb-2">Settings</h1>
-        <p className="text-moon-muted">Configure your mod manager preferences</p>
+        <p className="text-moon-muted">
+          Configure your mod manager preferences
+        </p>
       </motion.div>
 
       {/* Settings Panel */}

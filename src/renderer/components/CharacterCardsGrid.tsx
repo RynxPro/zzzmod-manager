@@ -19,26 +19,26 @@ const CharacterCardsGrid: React.FC<CharacterCardsGridProps> = ({
   const charactersWithStats = useMemo(() => {
     // Group mods by character name (case-insensitive)
     const modsByChar = new Map<string, ModItem[]>();
-    
-    mods.forEach(mod => {
+
+    mods.forEach((mod) => {
       if (!mod.character) return;
-      
+
       const lowerCharName = mod.character.toLowerCase();
       const existingMods = modsByChar.get(lowerCharName) || [];
       modsByChar.set(lowerCharName, [...existingMods, mod]);
     });
-    
-    return characters.map(char => {
+
+    return characters.map((char) => {
       const modsForChar = modsByChar.get(char.name.toLowerCase()) || [];
-      const activeMods = modsForChar.filter(m => m.enabled).length;
-      
+      const activeMods = modsForChar.filter((m) => m.enabled).length;
+
       return {
         ...char,
         total: modsForChar.length,
         active: activeMods,
         attribute: char.attribute,
         specialty: char.specialty,
-        rank: char.rank
+        rank: char.rank,
       };
     });
   }, [mods]);
@@ -87,12 +87,23 @@ const CharacterCardsGrid: React.FC<CharacterCardsGridProps> = ({
           />
           {searchQuery && (
             <button
-              onClick={() => setSearchQuery('')}
+              onClick={() => setSearchQuery("")}
               className="absolute inset-y-0 right-0 pr-3 flex items-center text-moon-muted hover:text-moon-text transition-colors"
               aria-label="Clear search"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
               </svg>
             </button>
           )}

@@ -54,7 +54,12 @@ const ToastComponent: React.FC<ToastProps> = ({ toast, onDismiss }) => {
       initial={{ opacity: 0, x: 300, scale: 0.9 }}
       animate={{ opacity: 1, x: 0, scale: 1 }}
       exit={{ opacity: 0, x: 300, scale: 0.9 }}
-      transition={{ duration: 0.3, type: "spring", stiffness: 300, damping: 30 }}
+      transition={{
+        duration: 0.3,
+        type: "spring",
+        stiffness: 300,
+        damping: 30,
+      }}
       className={`glass-panel rounded-2xl p-4 border ${getStyles()} min-w-[320px] max-w-[400px]`}
     >
       <div className="flex items-start gap-3">
@@ -95,11 +100,7 @@ export const ToastContainer: React.FC<ToastContainerProps> = ({
     <div className="fixed top-20 right-4 z-[99999] space-y-3">
       <AnimatePresence>
         {toasts.map((toast) => (
-          <ToastComponent
-            key={toast.id}
-            toast={toast}
-            onDismiss={onDismiss}
-          />
+          <ToastComponent key={toast.id} toast={toast} onDismiss={onDismiss} />
         ))}
       </AnimatePresence>
     </div>
@@ -128,7 +129,7 @@ export const useToast = () => {
 
   const success = React.useCallback(
     (titleOrOptions: string | ToastOptions, message?: string) => {
-      if (typeof titleOrOptions === 'string') {
+      if (typeof titleOrOptions === "string") {
         addToast({ type: "success", title: titleOrOptions, message });
       } else {
         addToast({ type: "success", ...titleOrOptions });
@@ -139,7 +140,7 @@ export const useToast = () => {
 
   const error = React.useCallback(
     (titleOrOptions: string | ToastOptions, message?: string) => {
-      if (typeof titleOrOptions === 'string') {
+      if (typeof titleOrOptions === "string") {
         addToast({ type: "error", title: titleOrOptions, message });
       } else {
         addToast({ type: "error", ...titleOrOptions });
@@ -150,7 +151,7 @@ export const useToast = () => {
 
   const warning = React.useCallback(
     (titleOrOptions: string | ToastOptions, message?: string) => {
-      if (typeof titleOrOptions === 'string') {
+      if (typeof titleOrOptions === "string") {
         addToast({ type: "warning", title: titleOrOptions, message });
       } else {
         addToast({ type: "warning", ...titleOrOptions });

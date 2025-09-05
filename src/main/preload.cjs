@@ -7,7 +7,8 @@ contextBridge.exposeInMainWorld("electronAPI", {
     listActive: () => ipcRenderer.invoke("mods:listActive"),
     listModsByCharacter: (character) =>
       ipcRenderer.invoke("mods:listModsByCharacter", character),
-    toggleMod: (id, turnOn) => ipcRenderer.invoke(turnOn ? "mods:enable" : "mods:disable", id),
+    toggleMod: (id, turnOn) =>
+      ipcRenderer.invoke(turnOn ? "mods:enable" : "mods:disable", id),
     deleteMod: (id) => ipcRenderer.invoke("mods:deleteMod", id),
     importZip: (zipPath, character = null) =>
       ipcRenderer.invoke("mods:importZip", zipPath, character),
@@ -19,7 +20,8 @@ contextBridge.exposeInMainWorld("electronAPI", {
     savePreset: (name) => ipcRenderer.invoke("mods:savePreset", name),
     applyPreset: (name) => ipcRenderer.invoke("mods:applyPreset", name),
     deletePreset: (name) => ipcRenderer.invoke("mods:deletePreset", name),
-    showItemInFolder: (path) => ipcRenderer.invoke("mods:showItemInFolder", path),
+    showItemInFolder: (path) =>
+      ipcRenderer.invoke("mods:showItemInFolder", path),
   },
   settings: {
     get: () => ipcRenderer.invoke("settings:get"),

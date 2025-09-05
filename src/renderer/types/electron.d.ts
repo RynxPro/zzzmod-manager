@@ -47,12 +47,16 @@ declare global {
     ) => Promise<ModItem>;
     chooseZip: () => Promise<string | null>;
     chooseFolder: () => Promise<string | null>;
-    showItemInFolder: (path: string) => Promise<{ success: boolean; error?: string }>;
+    showItemInFolder: (
+      path: string
+    ) => Promise<{ success: boolean; error?: string }>;
 
     // Preset management
     listPresets: () => Promise<{ name: string; mods: string[] }[]>;
     savePreset: (name: string) => Promise<{ name: string; mods: string[] }>;
-    applyPreset: (name: string) => Promise<{ success: boolean; missingMods: string[] }>;
+    applyPreset: (
+      name: string
+    ) => Promise<{ success: boolean; missingMods: string[] }>;
     deletePreset: (name: string) => Promise<{ success: boolean }>;
   }
 

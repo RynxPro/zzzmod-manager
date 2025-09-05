@@ -5,13 +5,24 @@ declare interface Window {
     mods: {
       listLibrary: () => Promise<ModItem[]>;
       listActive: () => Promise<ModItem[]>;
-      toggleMod: (id: string, turnOn: boolean) => Promise<{ success: boolean; message?: string; mod?: ModItem }>;
+      toggleMod: (
+        id: string,
+        turnOn: boolean
+      ) => Promise<{ success: boolean; message?: string; mod?: ModItem }>;
       remove: (id: string) => Promise<boolean>;
-      importZip: (zipPath: string, character?: string | null) => Promise<ModItem>;
-      importFolder: (folderPath: string, character?: string | null) => Promise<ModItem>;
+      importZip: (
+        zipPath: string,
+        character?: string | null
+      ) => Promise<ModItem>;
+      importFolder: (
+        folderPath: string,
+        character?: string | null
+      ) => Promise<ModItem>;
       chooseZip: () => Promise<string | null>;
       chooseFolder: () => Promise<string | null>;
-      showItemInFolder: (path: string) => Promise<{ success: boolean; error?: string }>;
+      showItemInFolder: (
+        path: string
+      ) => Promise<{ success: boolean; error?: string }>;
     };
     settings: {
       get: () => Promise<AppSettings>;
@@ -31,4 +42,4 @@ interface AppSettings {
 }
 
 // Import the ModItem interface from your types
-import { ModItem } from './ui/types/mods';
+import { ModItem } from "./ui/types/mods";

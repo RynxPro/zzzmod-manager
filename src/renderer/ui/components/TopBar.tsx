@@ -1,10 +1,10 @@
-import React, { useCallback, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Grid, List, RefreshCw, Menu, X } from 'lucide-react';
-import { useLocation, NavLink } from 'react-router-dom';
-import { cn } from '../../lib/utils';
+import React, { useCallback, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Search, Grid, List, RefreshCw, Menu, X } from "lucide-react";
+import { useLocation, NavLink } from "react-router-dom";
+import { cn } from "../../lib/utils";
 
-type ViewMode = 'grid' | 'list';
+type ViewMode = "grid" | "list";
 
 interface TopBarProps {
   /** Current search query */
@@ -32,15 +32,15 @@ interface TopBarProps {
 }
 
 const TopBar: React.FC<TopBarProps> = ({
-  searchQuery = '',
+  searchQuery = "",
   onSearch,
   onRefresh,
-  viewMode = 'grid',
+  viewMode = "grid",
   onViewModeChange,
   showViewToggle = true,
   showSearch = true,
   showActions = true,
-  className = '',
+  className = "",
   onToggleSidebar,
   isSidebarCollapsed,
 }) => {
@@ -51,32 +51,35 @@ const TopBar: React.FC<TopBarProps> = ({
   // Get current page title from route
   const getTitle = useCallback(() => {
     const path = location.pathname;
-    if (path.startsWith('/characters/')) {
+    if (path.startsWith("/characters/")) {
       const match = path.match(/^\/characters\/([^/]+)/);
-      return match ? decodeURIComponent(match[1]) : 'Character';
+      return match ? decodeURIComponent(match[1]) : "Character";
     }
-    
+
     const titles: Record<string, string> = {
-      '/characters': 'Characters',
-      '/settings': 'Settings',
-      '/about': 'About',
-      '/mods': 'Mod Library',
-      '/presets': 'Presets',
-      '/': 'Dashboard',
+      "/characters": "Characters",
+      "/settings": "Settings",
+      "/about": "About",
+      "/mods": "Mod Library",
+      "/presets": "Presets",
+      "/": "Dashboard",
     };
-    
-    return titles[path] || 'Dashboard';
+
+    return titles[path] || "Dashboard";
   }, [location.pathname]);
 
-  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    onSearch?.(e.target.value);
-  }, [onSearch]);
+  const handleSearchChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      onSearch?.(e.target.value);
+    },
+    [onSearch]
+  );
 
-  const clearSearch = useCallback(() => onSearch?.(''), [onSearch]);
+  const clearSearch = useCallback(() => onSearch?.(""), [onSearch]);
 
   const handleRefreshClick = useCallback(async () => {
     if (!onRefresh) return;
-    
+
     setIsRefreshing(true);
     try {
       await onRefresh();
@@ -85,19 +88,22 @@ const TopBar: React.FC<TopBarProps> = ({
     }
   }, [onRefresh]);
 
-  const handleViewModeChange = useCallback((mode: ViewMode) => {
-    onViewModeChange?.(mode);
-  }, [onViewModeChange]);
+  const handleViewModeChange = useCallback(
+    (mode: ViewMode) => {
+      onViewModeChange?.(mode);
+    },
+    [onViewModeChange]
+  );
 
   return (
     <motion.header
       initial={{ y: -20, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
-      transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+      transition={{ type: "spring", stiffness: 400, damping: 30 }}
       className={cn(
-        'sticky top-0 z-20 h-16 bg-moon-surface/80 backdrop-blur-lg',
-        'border-b border-white/5 shadow-2xl shadow-moon-glowCyan/5',
-        'bg-gradient-to-r from-moon-surface/90 via-moon-surface/80 to-moon-surface/90',
+        "sticky top-0 z-20 h-16 bg-moon-surface/80 backdrop-blur-lg",
+        "border-b border-white/5 shadow-2xl shadow-moon-glowCyan/5",
+        "bg-gradient-to-r from-moon-surface/90 via-moon-surface/80 to-moon-surface/90",
         className
       )}
     >
@@ -118,7 +124,7 @@ const TopBar: React.FC<TopBarProps> = ({
               <X className="w-5 h-5 relative z-10" />
             )}
           </motion.button>
-          <motion.div 
+          <motion.div
             key={location.pathname}
             initial={{ x: -10, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
@@ -134,20 +140,22 @@ const TopBar: React.FC<TopBarProps> = ({
         {/* Middle section - Search */}
         <div className="hidden md:flex flex-1 max-w-2xl mx-6">
           {showSearch && onSearch && (
-            <motion.div 
+            <motion.div
               className={`relative w-full rounded-xl transition-all duration-300 ${
-                isSearchFocused 
-                  ? 'ring-2 ring-moon-glowCyan/60 shadow-moonGlowCyan/30' 
-                  : 'bg-moon-surface/30 hover:bg-moon-surface/40 shadow-moonGlowCyan/10 hover:shadow-moonGlowCyan/20'
+                isSearchFocused
+                  ? "ring-2 ring-moon-glowCyan/60 shadow-moonGlowCyan/30"
+                  : "bg-moon-surface/30 hover:bg-moon-surface/40 shadow-moonGlowCyan/10 hover:shadow-moonGlowCyan/20"
               } backdrop-blur-sm`}
               whileHover={{ scale: 1.01 }}
             >
               <div className="absolute inset-0 bg-gradient-to-r from-moon-glowCyan/5 to-moon-glowViolet/5 rounded-xl" />
               <div className="relative z-10 flex items-center">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Search className={`h-4 w-4 ${
-                    isSearchFocused ? 'text-moon-glowCyan' : 'text-moon-muted'
-                  } transition-colors`} />
+                  <Search
+                    className={`h-4 w-4 ${
+                      isSearchFocused ? "text-moon-glowCyan" : "text-moon-muted"
+                    } transition-colors`}
+                  />
                 </div>
                 <input
                   type="text"
@@ -156,7 +164,9 @@ const TopBar: React.FC<TopBarProps> = ({
                   value={searchQuery}
                   onChange={handleSearchChange}
                   onFocus={() => setIsSearchFocused(true)}
-                  onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
+                  onBlur={() =>
+                    setTimeout(() => setIsSearchFocused(false), 200)
+                  }
                 />
                 <AnimatePresence>
                   {searchQuery && (
@@ -184,11 +194,11 @@ const TopBar: React.FC<TopBarProps> = ({
           {showViewToggle && onViewModeChange && (
             <div className="hidden sm:flex items-center bg-moon-surface/30 backdrop-blur-sm rounded-xl p-1">
               <button
-                onClick={() => handleViewModeChange('grid')}
+                onClick={() => handleViewModeChange("grid")}
                 className={`p-2 rounded-lg transition-all duration-200 ${
-                  viewMode === 'grid' 
-                    ? 'text-moon-glowCyan bg-moon-surface/50 shadow-moonGlowCyan/30' 
-                    : 'text-moon-muted hover:text-moon-glowCyan hover:bg-moon-surface/40'
+                  viewMode === "grid"
+                    ? "text-moon-glowCyan bg-moon-surface/50 shadow-moonGlowCyan/30"
+                    : "text-moon-muted hover:text-moon-glowCyan hover:bg-moon-surface/40"
                 } hover:scale-110 active:scale-95`}
                 title="Grid view"
               >
@@ -196,11 +206,11 @@ const TopBar: React.FC<TopBarProps> = ({
               </button>
               <div className="w-px h-5 bg-white/5 mx-0.5" />
               <button
-                onClick={() => handleViewModeChange('list')}
+                onClick={() => handleViewModeChange("list")}
                 className={`p-2 rounded-lg transition-all duration-200 ${
-                  viewMode === 'list' 
-                    ? 'text-moon-glowViolet bg-moon-surface/50 shadow-moonGlowViolet/30' 
-                    : 'text-moon-muted hover:text-moon-glowViolet hover:bg-moon-surface/40'
+                  viewMode === "list"
+                    ? "text-moon-glowViolet bg-moon-surface/50 shadow-moonGlowViolet/30"
+                    : "text-moon-muted hover:text-moon-glowViolet hover:bg-moon-surface/40"
                 } hover:scale-110 active:scale-95`}
                 title="List view"
               >
@@ -219,7 +229,11 @@ const TopBar: React.FC<TopBarProps> = ({
                 title="Refresh"
               >
                 <div className="absolute inset-0 bg-moon-glowCyan/5 group-hover:bg-moon-glowCyan/10 transition-colors rounded-xl" />
-                <RefreshCw className={`w-4 h-4 relative z-10 ${isRefreshing ? 'animate-spin' : 'group-hover:animate-pulse'}`} />
+                <RefreshCw
+                  className={`w-4 h-4 relative z-10 ${
+                    isRefreshing ? "animate-spin" : "group-hover:animate-pulse"
+                  }`}
+                />
               </button>
 
               <NavLink
@@ -227,9 +241,11 @@ const TopBar: React.FC<TopBarProps> = ({
                 className={({ isActive }) => `
                   hidden sm:flex items-center px-4 py-2.5 rounded-xl transition-all duration-300
                   hover:scale-105 active:scale-95 group relative overflow-hidden
-                  ${isActive 
-                    ? 'text-white bg-gradient-to-r from-moon-glowCyan/90 to-moon-glowViolet/90' 
-                    : 'text-moon-muted hover:text-moon-text hover:bg-moon-surface/30'}
+                  ${
+                    isActive
+                      ? "text-white bg-gradient-to-r from-moon-glowCyan/90 to-moon-glowViolet/90"
+                      : "text-moon-muted hover:text-moon-text hover:bg-moon-surface/30"
+                  }
                 `}
               >
                 <div className="absolute inset-0 bg-white/5 group-hover:bg-white/10 transition-colors rounded-xl" />
