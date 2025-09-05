@@ -1,4 +1,10 @@
 export interface ModItem {
+  updatedAt?: string;
+  lastUpdated?: string;
+  tags?: never[];
+  dependencies?: never[];
+  conflicts?: never[];
+  isFavorite?: boolean;
   id: string;
   name: string;
   version?: string;

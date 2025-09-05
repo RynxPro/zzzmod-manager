@@ -475,7 +475,16 @@ const DashboardPage: React.FC = () => {
               >
                 <AnimatePresence>
                   {filteredMods.map((mod) => {
-                    const characterInfo = getCharacterInfo(mod.character);
+                    const character = getCharacterInfo(mod.character);
+                    const characterInfo = character ? {
+                      id: character.id,
+                      name: character.name,
+                      imageUrl: character.imageUrl,
+                      attribute: character.attribute,
+                      specialty: character.specialty,
+                      rank: character.rank as 'A' | 'S' | 'S-2' | undefined
+                    } : undefined;
+                    
                     return (
                       <ModCard
                         key={mod.id}
@@ -485,8 +494,7 @@ const DashboardPage: React.FC = () => {
                           version: mod.version || "1.0.0",
                           isFavorite: mod.isFavorite || false,
                           updatedAt: mod.updatedAt || new Date().toISOString(),
-                          lastUpdated:
-                            mod.lastUpdated || new Date().toISOString(),
+                          lastUpdated: mod.lastUpdated || new Date().toISOString(),
                           tags: mod.tags || [],
                           dependencies: mod.dependencies || [],
                           conflicts: mod.conflicts || [],

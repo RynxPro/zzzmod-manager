@@ -4,13 +4,25 @@ import { FiPower, FiTrash2, FiFolder } from "react-icons/fi";
 import { cn } from "../../../lib/utils";
 import { ModItem } from "../../types/mods";
 
+export interface CharacterInfo {
+  id: string;
+  name: string;
+  imageUrl: string;
+  attribute?: 'Auric Ink' | 'Electric' | 'Ether' | 'Fire' | 'Frost' | 'Ice' | 'Physical';
+  specialty?: 'Attack' | 'Defense' | 'Support' | 'Anomaly' | 'Healing' | 'Stun' | 'Rupture';
+  rank?: 'A' | 'S' | 'S-2';
+}
+
 interface ModCardProps {
   mod: ModItem;
   onToggle: (id: string, enabled: boolean) => Promise<void>;
   onDelete: (id: string) => void;
   onOpenFolder: (id: string) => void;
+  onFavorite?: (id: string, favorite: boolean) => void;
+  viewMode?: 'grid' | 'list';
   className?: string;
   style?: React.CSSProperties;
+  characterInfo?: CharacterInfo;
 }
 
 const ModCard: React.FC<ModCardProps> = ({
@@ -18,6 +30,9 @@ const ModCard: React.FC<ModCardProps> = ({
   onToggle,
   onDelete,
   onOpenFolder,
+  onFavorite,
+  viewMode = 'grid',
+  characterInfo,
   className,
   style,
 }) => {
@@ -62,9 +77,31 @@ const ModCard: React.FC<ModCardProps> = ({
 
       <div className="p-5">
         <div className="flex justify-between items-start gap-3 mb-4">
-          <h3 className="font-semibold text-moon-text/90 group-hover:text-moon-glowCyan transition-colors line-clamp-2">
-            {mod.name}
-          </h3>
+          <div>
+            <h3 className="font-semibold text-moon-text/90 group-hover:text-moon-glowCyan transition-colors line-clamp-2">
+              {mod.name}
+            </h3>
+            {characterInfo && (
+              <div className="flex items-center gap-2 mt-1 text-xs text-moon-text/60">
+                {characterInfo.attribute && (
+                  <span className="flex items-center gap-1">
+                    <img 
+                      src={`/attribute/Icon_${characterInfo.attribute.replace(' ', '_')}.webp`} 
+                      alt={characterInfo.attribute}
+                      className="w-4 h-4"
+                      aria-hidden="true"
+                    />
+                    {characterInfo.attribute}
+                  </span>
+                )}
+                {characterInfo.rank && (
+                  <span className="text-yellow-400">
+                    {characterInfo.rank}
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
           <button
             onClick={handleToggle}
             className={cn(
