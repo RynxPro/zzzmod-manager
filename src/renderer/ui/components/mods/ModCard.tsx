@@ -1,5 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import { FiPower, FiTrash2, FiFolder } from "react-icons/fi";
 import { cn } from "../../../lib/utils";
 import { ModItem } from "../../types/mods";
@@ -46,9 +47,15 @@ const ModCard: React.FC<ModCardProps> = ({
     onDelete(mod.id);
   };
 
+  const navigate = useNavigate();
+
   const handleOpenFolderClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     onOpenFolder(mod.id);
+  };
+
+  const handleCardClick = () => {
+    navigate(`/mods/${mod.id}`);
   };
 
   return (
@@ -60,10 +67,11 @@ const ModCard: React.FC<ModCardProps> = ({
         "group relative rounded-2xl border border-moon-surface/20 overflow-hidden transition-all duration-300",
         "bg-moon-surface/10 hover:bg-moon-surface/20 hover:border-moon-surface/30",
         "hover:shadow-lg hover:shadow-moon-glowViolet/5",
-        "hover:-translate-y-1",
+        "hover:-translate-y-1 cursor-pointer",
         className
       )}
       style={style}
+      onClick={handleCardClick}
     >
       {/* Status indicator */}
       <div
@@ -103,7 +111,10 @@ const ModCard: React.FC<ModCardProps> = ({
             )}
           </div>
           <button
-            onClick={handleToggle}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleToggle(e);
+            }}
             className={cn(
               "p-1.5 rounded-lg transition-all duration-200 flex-shrink-0",
               "border hover:shadow-lg",
@@ -139,14 +150,20 @@ const ModCard: React.FC<ModCardProps> = ({
           </div>
           <div className="flex gap-1.5">
             <button
-              onClick={handleOpenFolderClick}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleOpenFolderClick(e);
+              }}
               className="p-1.5 text-moon-text/50 hover:text-moon-glowCyan hover:bg-moon-surface/30 rounded-lg transition-all duration-200 group/button"
               title="Open mod folder"
             >
               <FiFolder className="w-4 h-4 group-hover/button:-translate-y-0.5 transition-transform" />
             </button>
             <button
-              onClick={handleDelete}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleDelete(e);
+              }}
               className="p-1.5 text-moon-text/50 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all duration-200 group/button"
               title="Delete mod"
             >

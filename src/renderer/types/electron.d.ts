@@ -12,8 +12,22 @@ declare global {
     dateAdded?: number;
     sizeBytes?: number;
     thumbnailPath?: string | null;
+    thumbnailUrl?: string; // Added for remote thumbnails
     appliedFiles?: string[];
     hasConflict?: boolean;
+  }
+
+  interface GetModResult {
+    success: boolean;
+    message?: string;
+    mod?: ModItem;
+  }
+
+  interface UpdateThumbnailResult {
+    success: boolean;
+    message?: string;
+    mod?: ModItem;
+    thumbnailUrl?: string;
   }
 
   interface ImportOptions {
@@ -32,6 +46,10 @@ declare global {
     toggleMod: (id: string, turnOn: boolean) => Promise<boolean>;
     remove: (id: string) => Promise<boolean>;
     deleteMod: (id: string) => Promise<boolean>;
+
+    // Mod thumbnail methods
+    getMod: (id: string) => Promise<GetModResult>;
+    updateModThumbnail: (id: string, thumbnailUrl: string) => Promise<UpdateThumbnailResult>;
 
     // Import methods
     importMod: (options: ImportOptions) => Promise<ModItem>;

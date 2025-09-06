@@ -15,6 +15,7 @@ export interface ModItem {
   activePath?: string | null;
   installPath?: string;
   character?: string;
+  thumbnailUrl?: string;
   dateAdded?: number;
   sizeBytes?: number;
   thumbnailPath?: string | null;
@@ -26,6 +27,13 @@ export interface ToggleModResult {
   success: boolean;
   message?: string;
   mod?: ModItem;
+}
+
+export interface UpdateModThumbnailResult {
+  success: boolean;
+  message?: string;
+  mod?: ModItem;
+  thumbnailUrl?: string;
 }
 
 export type ImportState = "idle" | "importing" | "success" | "error";

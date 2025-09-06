@@ -4,6 +4,7 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import "./index.css";
 import RootLayout from "./ui/RootLayout";
 import DashboardPage from "./ui/pages/mods/DashboardPage";
+import ModCardPage from "./ui/pages/mods/ModCardPage";
 import SettingsPage from "./ui/pages/SettingsPage";
 import AboutPage from "./ui/pages/AboutPage";
 import CharactersPage from "./ui/pages/CharactersPage";
@@ -20,6 +21,7 @@ const router = createBrowserRouter([
       { path: "characters/:charName", element: <CharacterModsPage /> },
       { path: "presets", element: <PresetsPage /> },
       { path: "mods", element: <DashboardPage /> },
+      { path: "mods/:modId", element: <ModCardPage /> },
       { path: "settings", element: <SettingsPage /> },
       { path: "about", element: <AboutPage /> },
     ],

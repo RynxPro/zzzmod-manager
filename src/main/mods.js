@@ -679,10 +679,41 @@ async function deletePreset(presetName) {
   return { success: true };
 }
 
+// Get a single mod by ID
+async function getMod(modId) {
+  try {
+    const config = await readConfig();
+    const mod = config.mods.find(m => m.id === modId);
+    
+    if (!mod) {
+      return { success: false, message: 'Mod not found' };
+    }
+    
+    // Ensure the mod has all required fields
+    const modDir = path.join(MANAGER_MODS_DIR, mod.character || '', path.basename(mod.dir));
+    const manifest = await readManifest(modDir);
+    
+    // Update the mod with the latest data
+    const updatedMod = {
+      ...mod,
+      ...buildModObject(modDir, manifest),
+      // Preserve the original ID and enabled state
+      id: mod.id,
+      enabled: mod.enabled
+    };
+    
+    return { success: true, mod: updatedMod };
+  } catch (error) {
+    console.error('Error getting mod:', error);
+    return { success: false, message: error.message };
+  }
+}
+
 export const api = {
   listMods: listModsEnriched,
   listLibrary,
-  listActive, // added
+  listActive,
+  getMod,
   listModsByCharacter,
   importFromZip,
   importFromFolder,
