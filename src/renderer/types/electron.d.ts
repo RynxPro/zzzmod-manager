@@ -98,6 +98,20 @@ declare global {
     }>;
   }
 
+  interface ClipboardResult<T = string> {
+    success: boolean;
+    error?: string;
+    text?: T;
+  }
+
+  interface ElectronClipboardAPI {
+    writeText: (text: string) => { success: boolean; error?: string };
+    readText: () => ClipboardResult;
+    cut: () => void;
+    copy: () => void;
+    paste: () => void;
+  }
+
   interface Window {
     electronAPI: {
       getVersion: () => Promise<string>;
@@ -105,5 +119,6 @@ declare global {
       mods: ModsAPI;
       settings: SettingsAPI;
     };
+    electronClipboard: ElectronClipboardAPI;
   }
 }

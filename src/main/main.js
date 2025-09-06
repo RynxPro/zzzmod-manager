@@ -1,4 +1,4 @@
-import { app, BrowserWindow, shell, ipcMain, dialog, Menu } from "electron";
+import { app, BrowserWindow, shell, ipcMain, dialog, Menu, MenuItem } from "electron";
 import path from "node:path";
 import fs from "node:fs";
 import fsp from "node:fs/promises";
@@ -65,6 +65,17 @@ function createMainWindow() {
       nodeIntegration: false,
       sandbox: false,
       webSecurity: true,
+      // Enable clipboard access
+      contextIsolation: true,
+      nodeIntegration: false,
+      enableRemoteModule: false,
+      // Enable clipboard features
+      webviewTag: false,
+      // Enable clipboard access in the renderer process
+      // This is required for the clipboard API to work
+      // in the renderer process
+      // Also enable spellcheck
+      spellcheck: true,
     },
   });
 
@@ -87,6 +98,34 @@ function createMainWindow() {
   });
 
   // --- Drag-and-Drop Support ---
+  // Set up context menu
+  const contextMenu = new Menu();
+  contextMenu.append(new MenuItem({
+    label: 'Copy',
+    role: 'copy',
+    accelerator: 'CommandOrControl+C'
+  }));
+  contextMenu.append(new MenuItem({
+    label: 'Paste',
+    role: 'paste',
+    accelerator: 'CommandOrControl+V'
+  }));
+  contextMenu.append(new MenuItem({
+    label: 'Cut',
+    role: 'cut',
+    accelerator: 'CommandOrControl+X'
+  }));
+  contextMenu.append(new MenuItem({
+    label: 'Select All',
+    role: 'selectAll',
+    accelerator: 'CommandOrControl+A'
+  }));
+
+  // Apply context menu to all windows
+  mainWindow.webContents.on('context-menu', (e, params) => {
+    contextMenu.popup();
+  });
+
   mainWindow.webContents.on("will-navigate", (event) => {
     event.preventDefault();
   });

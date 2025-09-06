@@ -1,5 +1,37 @@
-const { contextBridge, ipcRenderer } = require("electron");
+const { contextBridge, ipcRenderer, clipboard } = require("electron");
 
+// Expose clipboard functionality with error handling
+contextBridge.exposeInMainWorld('electronClipboard', {
+  writeText: (text) => {
+    try {
+      clipboard.writeText(text);
+      return { success: true };
+    } catch (error) {
+      console.error('Failed to write to clipboard:', error);
+      return { success: false, error: error.message };
+    }
+  },
+  readText: () => {
+    try {
+      return { success: true, text: clipboard.readText() };
+    } catch (error) {
+      console.error('Failed to read from clipboard:', error);
+      return { success: false, error: error.message };
+    }
+  },
+  // Add cut/copy/paste commands
+  cut: () => {
+    document.execCommand('cut');
+  },
+  copy: () => {
+    document.execCommand('copy');
+  },
+  paste: () => {
+    document.execCommand('paste');
+  }
+});
+
+// Expose other API functionality
 contextBridge.exposeInMainWorld("electronAPI", {
   getVersion: () => ipcRenderer.invoke("app:getVersion"),
   mods: {
