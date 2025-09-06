@@ -709,10 +709,41 @@ async function getMod(modId) {
   }
 }
 
+// Update a mod's thumbnail
+async function updateModThumbnail(modId, thumbnailUrl) {
+  try {
+    const config = await readConfig();
+    const modIndex = config.mods.findIndex(m => m.id === modId);
+    
+    if (modIndex === -1) {
+      throw new Error('Mod not found');
+    }
+    
+    // Update the mod's thumbnail URL
+    config.mods[modIndex].thumbnailUrl = thumbnailUrl;
+    
+    // Save the updated config
+    await writeConfig(config);
+    
+    // Return the updated mod
+    return { 
+      success: true, 
+      mod: config.mods[modIndex] 
+    };
+  } catch (error) {
+    console.error('Error updating mod thumbnail:', error);
+    return { 
+      success: false, 
+      message: error.message 
+    };
+  }
+}
+
 export const api = {
   listMods: listModsEnriched,
   listLibrary,
   listActive,
+  updateModThumbnail,
   getMod,
   listModsByCharacter,
   importFromZip,

@@ -40,6 +40,8 @@ contextBridge.exposeInMainWorld("electronAPI", {
     listModsByCharacter: (character) =>
       ipcRenderer.invoke("mods:listModsByCharacter", character),
     getMod: (id) => ipcRenderer.invoke("mods:getMod", id),
+    updateModThumbnail: (id, thumbnailUrl) => 
+      ipcRenderer.invoke("mods:updateModThumbnail", { id, thumbnailUrl }),
     toggleMod: (id, turnOn) =>
       ipcRenderer.invoke(turnOn ? "mods:enable" : "mods:disable", id),
     deleteMod: (id) => ipcRenderer.invoke("mods:deleteMod", id),

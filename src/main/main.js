@@ -231,6 +231,9 @@ safeIpcHandle("mods:listModsByCharacter", async (_e, character) => {
 });
 safeIpcHandle("mods:listActive", async () => modsApi.listActive());
 safeIpcHandle("mods:getMod", async (_e, id) => modsApi.getMod(id));
+safeIpcHandle("mods:updateModThumbnail", async (_e, { id, thumbnailUrl }) => {
+  return modsApi.updateModThumbnail(id, thumbnailUrl);
+});
 safeIpcHandle("mods:enable", async (_e, id) => modsApi.toggleMod(id, true));
 safeIpcHandle("mods:disable", async (_e, id) => modsApi.toggleMod(id, false));
 safeIpcHandle("mods:deleteMod", async (_e, id) => modsApi.deleteMod(id));
